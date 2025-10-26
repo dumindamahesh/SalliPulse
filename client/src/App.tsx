@@ -12,6 +12,7 @@ import Expenses from "@/pages/Expenses";
 import Assets from "@/pages/Assets";
 import Liabilities from "@/pages/Liabilities";
 import Investments from "@/pages/Investments";
+import Business from "@/pages/Business";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/assets" component={Assets} />
       <Route path="/liabilities" component={Liabilities} />
       <Route path="/investments" component={Investments} />
+      <Route path="/business" component={Business} />
       <Route component={NotFound} />
     </Switch>
   );

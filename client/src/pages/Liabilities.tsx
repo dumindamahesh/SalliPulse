@@ -2,15 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, CreditCard } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import type { Liability } from "@shared/schema";
 
-//todo: remove mock functionality
-const mockLiabilities = [
-  { id: '1', name: 'Mortgage', category: 'Loan', amount: 280000, description: 'Primary residence' },
-  { id: '2', name: 'Car Loan', category: 'Loan', amount: 18000 },
-  { id: '3', name: 'Credit Card', category: 'Debt', amount: 3500 },
-];
+export default function LiabilitiesPage() {
+  const { data: liabilityData = [], isLoading } = useQuery<Liability[]>({
+    queryKey: ["/api/liabilities"],
+  });
 
-export default function Liabilities() {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -19,7 +18,11 @@ export default function Liabilities() {
     }).format(amount);
   };
 
-  const totalLiabilities = mockLiabilities.reduce((sum, liability) => sum + liability.amount, 0);
+  const totalLiabilities = liabilityData.reduce((sum, liability) => sum + parseFloat(liability.amount), 0);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -45,7 +48,7 @@ export default function Liabilities() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {mockLiabilities.map((liability) => (
+            {liabilityData.map((liability) => (
               <div
                 key={liability.id}
                 className="flex items-center justify-between rounded-md border p-4"
@@ -64,11 +67,16 @@ export default function Liabilities() {
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-bold tabular-nums text-destructive">
-                    {formatCurrency(liability.amount)}
+                    {formatCurrency(parseFloat(liability.amount))}
                   </div>
                 </div>
               </div>
             ))}
+            {liabilityData.length === 0 && (
+              <div className="py-8 text-center text-muted-foreground">
+                No liabilities added yet
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

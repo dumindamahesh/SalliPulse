@@ -2,17 +2,28 @@ import { TransactionsTable } from "@/components/TransactionsTable";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingDown } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import type { Expense } from "@shared/schema";
 
-//todo: remove mock functionality
-const mockExpenseTransactions = [
-  { id: '1', date: '2024-01-14', category: 'Food', description: 'Grocery shopping', amount: -120.50, type: 'expense' as const },
-  { id: '2', date: '2024-01-12', category: 'Transportation', description: 'Gas', amount: -45.00, type: 'expense' as const },
-  { id: '3', date: '2024-01-08', category: 'Utilities', description: 'Electric bill', amount: -150.00, type: 'expense' as const },
-  { id: '4', date: '2024-01-06', category: 'Entertainment', description: 'Movie tickets', amount: -30.00, type: 'expense' as const },
-];
+export default function ExpensesPage() {
+  const { data: expenseData = [], isLoading } = useQuery<Expense[]>({
+    queryKey: ["/api/expenses"],
+  });
 
-export default function Expenses() {
-  const totalExpenses = Math.abs(mockExpenseTransactions.reduce((sum, t) => sum + t.amount, 0));
+  const totalExpenses = expenseData.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+
+  const expenseTransactions = expenseData.map(t => ({
+    id: t.id,
+    date: t.date.toString(),
+    category: t.category,
+    description: t.description,
+    amount: -parseFloat(t.amount),
+    type: 'expense' as const,
+  }));
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -34,7 +45,7 @@ export default function Expenses() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold tabular-nums">
-              ${totalExpenses.toLocaleString()}
+              ${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </CardContent>
         </Card>
@@ -42,7 +53,7 @@ export default function Expenses() {
 
       <div>
         <h2 className="mb-4 text-xl font-semibold">Expense History</h2>
-        <TransactionsTable transactions={mockExpenseTransactions} />
+        <TransactionsTable transactions={expenseTransactions} />
       </div>
     </div>
   );

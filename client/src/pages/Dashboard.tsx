@@ -3,35 +3,95 @@ import { TransactionsTable } from "@/components/TransactionsTable";
 import { IncomeExpenseChart } from "@/components/IncomeExpenseChart";
 import { CategoryBreakdownChart } from "@/components/CategoryBreakdownChart";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
+import { ExcelImport } from "@/components/ExcelImport";
 import { TrendingUp, TrendingDown, Wallet, PiggyBank } from "lucide-react";
-
-//todo: remove mock functionality
-const mockTransactions = [
-  { id: '1', date: '2024-01-15', category: 'Salary', description: 'Monthly salary', amount: 5000, type: 'income' as const },
-  { id: '2', date: '2024-01-14', category: 'Food', description: 'Grocery shopping', amount: -120.50, type: 'expense' as const },
-  { id: '3', date: '2024-01-12', category: 'Transportation', description: 'Gas', amount: -45.00, type: 'expense' as const },
-  { id: '4', date: '2024-01-10', category: 'Freelance', description: 'Website project', amount: 800, type: 'income' as const },
-  { id: '5', date: '2024-01-08', category: 'Utilities', description: 'Electric bill', amount: -150.00, type: 'expense' as const },
-];
-
-const mockChartData = [
-  { month: 'Jan', income: 5800, expenses: 4200 },
-  { month: 'Feb', income: 6200, expenses: 3800 },
-  { month: 'Mar', income: 5900, expenses: 4500 },
-  { month: 'Apr', income: 6500, expenses: 4100 },
-  { month: 'May', income: 6100, expenses: 4400 },
-  { month: 'Jun', income: 6800, expenses: 4300 },
-];
-
-const mockCategoryData = [
-  { name: 'Food', value: 1200 },
-  { name: 'Transportation', value: 800 },
-  { name: 'Utilities', value: 600 },
-  { name: 'Entertainment', value: 400 },
-  { name: 'Other', value: 320 },
-];
+import { useQuery } from "@tanstack/react-query";
+import type { Income, Expense, Asset, Liability } from "@shared/schema";
 
 export default function Dashboard() {
+  const { data: incomeData = [] } = useQuery<Income[]>({
+    queryKey: ["/api/income"],
+  });
+
+  const { data: expenseData = [] } = useQuery<Expense[]>({
+    queryKey: ["/api/expenses"],
+  });
+
+  const { data: assetData = [] } = useQuery<Asset[]>({
+    queryKey: ["/api/assets"],
+  });
+
+  const { data: liabilityData = [] } = useQuery<Liability[]>({
+    queryKey: ["/api/liabilities"],
+  });
+
+  // Calculate totals
+  const totalIncome = incomeData.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+  const totalExpenses = expenseData.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+  const totalAssets = assetData.reduce((sum, item) => sum + parseFloat(item.currentValue), 0);
+  const totalLiabilities = liabilityData.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+  const netWorth = totalAssets - totalLiabilities;
+  const savings = totalIncome - totalExpenses;
+
+  // Combine transactions for the table
+  const recentTransactions = [
+    ...incomeData.map(t => ({
+      id: t.id,
+      date: t.date.toString(),
+      category: t.category,
+      description: t.description || t.source,
+      amount: parseFloat(t.amount),
+      type: 'income' as const,
+    })),
+    ...expenseData.map(t => ({
+      id: t.id,
+      date: t.date.toString(),
+      category: t.category,
+      description: t.description,
+      amount: -parseFloat(t.amount),
+      type: 'expense' as const,
+    })),
+  ]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 10);
+
+  // Calculate monthly chart data
+  const getMonthlyData = () => {
+    const monthlyMap = new Map<string, { income: number; expenses: number }>();
+    
+    incomeData.forEach(item => {
+      const month = new Date(item.date).toLocaleDateString('en-US', { month: 'short' });
+      const current = monthlyMap.get(month) || { income: 0, expenses: 0 };
+      monthlyMap.set(month, { ...current, income: current.income + parseFloat(item.amount) });
+    });
+
+    expenseData.forEach(item => {
+      const month = new Date(item.date).toLocaleDateString('en-US', { month: 'short' });
+      const current = monthlyMap.get(month) || { income: 0, expenses: 0 };
+      monthlyMap.set(month, { ...current, expenses: current.expenses + parseFloat(item.amount) });
+    });
+
+    return Array.from(monthlyMap.entries()).map(([month, data]) => ({
+      month,
+      ...data,
+    })).slice(-6);
+  };
+
+  // Calculate category breakdown
+  const getCategoryBreakdown = () => {
+    const categoryMap = new Map<string, number>();
+    
+    expenseData.forEach(item => {
+      const current = categoryMap.get(item.category) || 0;
+      categoryMap.set(item.category, current + parseFloat(item.amount));
+    });
+
+    return Array.from(categoryMap.entries()).map(([name, value]) => ({
+      name,
+      value,
+    }));
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -39,48 +99,47 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="text-muted-foreground">Welcome back! Here's your financial overview.</p>
         </div>
-        <AddTransactionDialog />
+        <div className="flex gap-2">
+          <ExcelImport />
+          <AddTransactionDialog />
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <FinancialSummaryCard
           title="Total Income"
-          value="$12,450"
-          trend={8.2}
+          value={`$${totalIncome.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           icon={TrendingUp}
           iconColor="text-chart-2"
         />
         <FinancialSummaryCard
           title="Total Expenses"
-          value="$8,320"
-          trend={-3.1}
+          value={`$${totalExpenses.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           icon={TrendingDown}
           iconColor="text-destructive"
         />
         <FinancialSummaryCard
           title="Net Worth"
-          value="$510,680"
-          trend={5.4}
+          value={`$${netWorth.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           icon={Wallet}
           iconColor="text-chart-1"
         />
         <FinancialSummaryCard
           title="Savings"
-          value="$4,130"
-          trend={12.5}
+          value={`$${savings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           icon={PiggyBank}
           iconColor="text-chart-3"
         />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <IncomeExpenseChart data={mockChartData} />
-        <CategoryBreakdownChart data={mockCategoryData} title="Expense Breakdown" />
+        <IncomeExpenseChart data={getMonthlyData()} />
+        <CategoryBreakdownChart data={getCategoryBreakdown()} title="Expense Breakdown" />
       </div>
 
       <div>
         <h2 className="mb-4 text-xl font-semibold">Recent Transactions</h2>
-        <TransactionsTable transactions={mockTransactions} />
+        <TransactionsTable transactions={recentTransactions} />
       </div>
     </div>
   );

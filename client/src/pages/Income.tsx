@@ -2,16 +2,28 @@ import { TransactionsTable } from "@/components/TransactionsTable";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import type { Income } from "@shared/schema";
 
-//todo: remove mock functionality
-const mockIncomeTransactions = [
-  { id: '1', date: '2024-01-15', category: 'Salary', description: 'Monthly salary', amount: 5000, type: 'income' as const },
-  { id: '2', date: '2024-01-10', category: 'Freelance', description: 'Website project', amount: 800, type: 'income' as const },
-  { id: '3', date: '2024-01-05', category: 'Investment', description: 'Dividend payment', amount: 150, type: 'income' as const },
-];
+export default function IncomePage() {
+  const { data: incomeData = [], isLoading } = useQuery<Income[]>({
+    queryKey: ["/api/income"],
+  });
 
-export default function Income() {
-  const totalIncome = mockIncomeTransactions.reduce((sum, t) => sum + t.amount, 0);
+  const totalIncome = incomeData.reduce((sum, item) => sum + parseFloat(item.amount), 0);
+
+  const incomeTransactions = incomeData.map(t => ({
+    id: t.id,
+    date: t.date.toString(),
+    category: t.category,
+    description: t.description || t.source,
+    amount: parseFloat(t.amount),
+    type: 'income' as const,
+  }));
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -33,7 +45,7 @@ export default function Income() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-bold tabular-nums text-chart-2">
-              ${totalIncome.toLocaleString()}
+              ${totalIncome.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </CardContent>
         </Card>
@@ -41,7 +53,7 @@ export default function Income() {
 
       <div>
         <h2 className="mb-4 text-xl font-semibold">Income History</h2>
-        <TransactionsTable transactions={mockIncomeTransactions} />
+        <TransactionsTable transactions={incomeTransactions} />
       </div>
     </div>
   );

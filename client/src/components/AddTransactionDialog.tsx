@@ -24,10 +24,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Plus } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 const formSchema = z.object({
   type: z.enum(["income", "expense"]),
@@ -35,15 +39,18 @@ const formSchema = z.object({
   category: z.string(),
   amount: z.string(),
   description: z.string().optional(),
+  source: z.string().optional(),
+  isBusiness: z.boolean().default(false),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-const incomeCategories = ["Salary", "Freelance", "Investment", "Gift", "Other"];
-const expenseCategories = ["Food", "Transportation", "Utilities", "Entertainment", "Shopping", "Healthcare", "Other"];
+const incomeCategories = ["Salary", "Freelance", "Investment", "Gift", "Rental Income", "Other"];
+const expenseCategories = ["Food", "Transportation", "Utilities", "Entertainment", "Shopping", "Healthcare", "Maintenance", "Other"];
 
 export function AddTransactionDialog() {
   const [open, setOpen] = useState(false);
+  const { toast } = useToast();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -53,16 +60,75 @@ export function AddTransactionDialog() {
       category: "",
       amount: "",
       description: "",
+      source: "",
+      isBusiness: false,
     },
   });
 
   const transactionType = form.watch("type");
   const categories = transactionType === "income" ? incomeCategories : expenseCategories;
 
+  const createIncomeMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest("POST", "/api/income", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/income"] });
+      toast({
+        title: "Success",
+        description: "Income added successfully",
+      });
+      setOpen(false);
+      form.reset();
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add income",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const createExpenseMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest("POST", "/api/expenses", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/expenses"] });
+      toast({
+        title: "Success",
+        description: "Expense added successfully",
+      });
+      setOpen(false);
+      form.reset();
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to add expense",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: FormValues) => {
-    console.log("Transaction added:", data);
-    setOpen(false);
-    form.reset();
+    const { type, source, ...rest } = data;
+    const transactionData = {
+      ...rest,
+      date: new Date(data.date).toISOString(),
+      amount: data.amount,
+      isBusiness: data.isBusiness,
+    };
+
+    if (type === "income") {
+      createIncomeMutation.mutate({
+        ...transactionData,
+        source: source || "Other",
+      });
+    } else {
+      createExpenseMutation.mutate(transactionData);
+    }
   };
 
   return (
@@ -137,6 +203,25 @@ export function AddTransactionDialog() {
                 </FormItem>
               )}
             />
+            {transactionType === "income" && (
+              <FormField
+                control={form.control}
+                name="source"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Source</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g., Employer name"
+                        {...field}
+                        data-testid="input-source"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="amount"
@@ -162,7 +247,7 @@ export function AddTransactionDialog() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (Optional)</FormLabel>
+                  <FormLabel>Description {transactionType === "expense" ? "" : "(Optional)"}</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Add notes..."
@@ -171,6 +256,27 @@ export function AddTransactionDialog() {
                     />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="isBusiness"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      data-testid="checkbox-business"
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel>Business Transaction</FormLabel>
+                    <p className="text-sm text-muted-foreground">
+                      Mark this as a business expense or income
+                    </p>
+                  </div>
                 </FormItem>
               )}
             />
@@ -183,7 +289,11 @@ export function AddTransactionDialog() {
               >
                 Cancel
               </Button>
-              <Button type="submit" data-testid="button-save">
+              <Button
+                type="submit"
+                disabled={createIncomeMutation.isPending || createExpenseMutation.isPending}
+                data-testid="button-save"
+              >
                 Save Transaction
               </Button>
             </div>

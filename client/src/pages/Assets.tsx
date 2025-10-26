@@ -1,16 +1,26 @@
 import { AssetsList } from "@/components/AssetsList";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import type { Asset } from "@shared/schema";
 
-//todo: remove mock functionality
-const mockAssets = [
-  { id: '1', name: 'Primary Residence', category: 'Property', currentValue: 450000, description: 'Family home' },
-  { id: '2', name: 'Car - Toyota Camry', category: 'Vehicle', currentValue: 25000 },
-  { id: '3', name: 'Savings Account', category: 'Cash', currentValue: 35000, description: 'Emergency fund' },
-  { id: '4', name: 'Retirement Account', category: 'Investment', currentValue: 125000 },
-];
+export default function AssetsPage() {
+  const { data: assetData = [], isLoading } = useQuery<Asset[]>({
+    queryKey: ["/api/assets"],
+  });
 
-export default function Assets() {
+  const assets = assetData.map(a => ({
+    id: a.id,
+    name: a.name,
+    category: a.category,
+    currentValue: parseFloat(a.currentValue),
+    description: a.description || undefined,
+  }));
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -24,7 +34,7 @@ export default function Assets() {
         </Button>
       </div>
 
-      <AssetsList assets={mockAssets} />
+      <AssetsList assets={assets} />
     </div>
   );
 }

@@ -2,15 +2,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Plus, LineChart } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import type { Investment } from "@shared/schema";
 
-//todo: remove mock functionality
-const mockInvestments = [
-  { id: '1', name: 'S&P 500 Index Fund', category: 'Stocks', quantity: 150, currentValue: 75000 },
-  { id: '2', name: 'Bitcoin', category: 'Crypto', quantity: 0.5, currentValue: 22000 },
-  { id: '3', name: 'Corporate Bonds', category: 'Bonds', quantity: 50, currentValue: 25000 },
-];
+export default function InvestmentsPage() {
+  const { data: investmentData = [], isLoading } = useQuery<Investment[]>({
+    queryKey: ["/api/investments"],
+  });
 
-export default function Investments() {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "currency",
@@ -19,7 +18,11 @@ export default function Investments() {
     }).format(amount);
   };
 
-  const totalValue = mockInvestments.reduce((sum, inv) => sum + inv.currentValue, 0);
+  const totalValue = investmentData.reduce((sum, inv) => sum + parseFloat(inv.currentValue), 0);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -45,7 +48,7 @@ export default function Investments() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {mockInvestments.map((investment) => (
+            {investmentData.map((investment) => (
               <div
                 key={investment.id}
                 className="flex items-center justify-between rounded-md border p-4"
@@ -69,11 +72,16 @@ export default function Investments() {
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-bold tabular-nums">
-                    {formatCurrency(investment.currentValue)}
+                    {formatCurrency(parseFloat(investment.currentValue))}
                   </div>
                 </div>
               </div>
             ))}
+            {investmentData.length === 0 && (
+              <div className="py-8 text-center text-muted-foreground">
+                No investments added yet
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
