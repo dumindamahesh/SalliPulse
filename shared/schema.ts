@@ -1,19 +1,10 @@
 import { sql } from "drizzle-orm";
-import {
-  sqliteTable,
-  text,
-  varchar,
-  decimal,
-  timestamp,
-  boolean,
-} from "drizzle-orm/sqlite"; // Changed import for SQLite
+import { pgTable, text, varchar, decimal, timestamp, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// Note: Generate UUIDs in your application code before inserting
-
-export const income = sqliteTable("income", {
-  id: varchar("id").primaryKey(),
+export const income = pgTable("income", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   date: timestamp("date").notNull(),
   category: text("category").notNull(),
   amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
@@ -22,8 +13,8 @@ export const income = sqliteTable("income", {
   isBusiness: boolean("is_business").notNull().default(false),
 });
 
-export const expenses = sqliteTable("expenses", {
-  id: varchar("id").primaryKey(),
+export const expenses = pgTable("expenses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   date: timestamp("date").notNull(),
   category: text("category").notNull(),
   amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
@@ -31,8 +22,8 @@ export const expenses = sqliteTable("expenses", {
   isBusiness: boolean("is_business").notNull().default(false),
 });
 
-export const assets = sqliteTable("assets", {
-  id: varchar("id").primaryKey(),
+export const assets = pgTable("assets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   category: text("category").notNull(),
   currentValue: decimal("current_value", { precision: 12, scale: 2 }).notNull(),
@@ -40,8 +31,8 @@ export const assets = sqliteTable("assets", {
   isBusiness: boolean("is_business").notNull().default(false),
 });
 
-export const liabilities = sqliteTable("liabilities", {
-  id: varchar("id").primaryKey(),
+export const liabilities = pgTable("liabilities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   category: text("category").notNull(),
   amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
@@ -49,8 +40,8 @@ export const liabilities = sqliteTable("liabilities", {
   isBusiness: boolean("is_business").notNull().default(false),
 });
 
-export const investments = sqliteTable("investments", {
-  id: varchar("id").primaryKey(),
+export const investments = pgTable("investments", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   category: text("category").notNull(),
   quantity: decimal("quantity", { precision: 12, scale: 4 }).notNull(),
@@ -58,8 +49,8 @@ export const investments = sqliteTable("investments", {
   description: text("description"),
 });
 
-export const rentalFleet = sqliteTable("rental_fleet", {
-  id: varchar("id").primaryKey(),
+export const rentalFleet = pgTable("rental_fleet", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   make: text("make").notNull(),
   model: text("model").notNull(),
   year: text("year").notNull(),
@@ -71,27 +62,19 @@ export const rentalFleet = sqliteTable("rental_fleet", {
   notes: text("notes"),
 });
 
-// Schemas for inserting data, with UUIDs generated in your app
-export const insertIncomeSchema = createInsertSchema(income)
-  .omit({ id: true })
-  .extend({
-    id: z.string().uuid(), // Expect UUID to be generated in app before insert
-    date: z.coerce.date(),
-  });
+export const insertIncomeSchema = createInsertSchema(income).omit({ id: true }).extend({
+  date: z.coerce.date(),
+});
 
-export const insertExpenseSchema = createInsertSchema(expenses)
-  .omit({ id: true })
-  .extend({
-    id: z.string().uuid(),
-    date: z.coerce.date(),
-  });
+export const insertExpenseSchema = createInsertSchema(expenses).omit({ id: true }).extend({
+  date: z.coerce.date(),
+});
 
 export const insertAssetSchema = createInsertSchema(assets).omit({ id: true });
 export const insertLiabilitySchema = createInsertSchema(liabilities).omit({ id: true });
 export const insertInvestmentSchema = createInsertSchema(investments).omit({ id: true });
 export const insertRentalFleetSchema = createInsertSchema(rentalFleet).omit({ id: true });
 
-// Type definitions
 export type Income = typeof income.$inferSelect;
 export type Expense = typeof expenses.$inferSelect;
 export type Asset = typeof assets.$inferSelect;
