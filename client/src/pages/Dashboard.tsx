@@ -6,6 +6,7 @@ import { AddTransactionDialog } from "@/components/AddTransactionDialog";
 import { ExcelImport } from "@/components/ExcelImport";
 import { TrendingUp, TrendingDown, Wallet, PiggyBank } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import type { Income, Expense, Asset, Liability } from "@shared/schema";
 
 export default function Dashboard() {
@@ -91,6 +92,38 @@ export default function Dashboard() {
       value,
     }));
   };
+
+  // Calculate assets vs liabilities
+  const getAssetsVsLiabilities = () => {
+    return [
+      { name: 'Assets', value: totalAssets },
+      { name: 'Liabilities', value: totalLiabilities },
+    ];
+  };
+
+  // Calculate income sources
+  const getIncomeSources = () => {
+    const sourceMap = new Map<string, number>();
+    
+    incomeData.forEach(item => {
+      const current = sourceMap.get(item.source) || 0;
+      sourceMap.set(item.source, current + parseFloat(item.amount));
+    });
+
+    return Array.from(sourceMap.entries()).map(([name, value]) => ({
+      name,
+      value,
+    }));
+  };
+
+  const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+
+  const personalExpenses = expenseData.filter(e => !e.isBusiness);
+  const businessExpenses = expenseData.filter(e => e.isBusiness);
+  const expensesByType = [
+    { name: 'Personal', value: personalExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0) },
+    { name: 'Business', value: businessExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0) },
+  ].filter(item => item.value > 0);
 
   return (
     <div className="space-y-6">
