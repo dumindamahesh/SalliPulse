@@ -7,6 +7,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Dashboard from "@/pages/Dashboard";
+import Calendar from "@/pages/Calendar";
 import Income from "@/pages/Income";
 import Expenses from "@/pages/Expenses";
 import Assets from "@/pages/Assets";
@@ -19,6 +20,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
+      <Route path="/calendar" component={Calendar} />
       <Route path="/income" component={Income} />
       <Route path="/expenses" component={Expenses} />
       <Route path="/assets" component={Assets} />
