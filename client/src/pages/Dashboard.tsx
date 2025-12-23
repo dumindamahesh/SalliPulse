@@ -170,6 +170,73 @@ export default function Dashboard() {
         <CategoryBreakdownChart data={getCategoryBreakdown()} title="Expense Breakdown" />
       </div>
 
+      <div className="grid gap-6 lg:grid-cols-2">
+        {getIncomeSources().length > 0 && (
+          <div className="rounded-lg border bg-card p-4">
+            <h2 className="mb-4 text-lg font-semibold">Income Sources</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={getIncomeSources()}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, value }) => `${name}: $${Number(value).toFixed(0)}`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {getIncomeSources().map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {getAssetsVsLiabilities().some(item => item.value > 0) && (
+          <div className="rounded-lg border bg-card p-4">
+            <h2 className="mb-4 text-lg font-semibold">Assets vs Liabilities</h2>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={getAssetsVsLiabilities()}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
+                <Bar dataKey="value" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {expensesByType.length > 0 && (
+        <div className="rounded-lg border bg-card p-4">
+          <h2 className="mb-4 text-lg font-semibold">Expenses: Personal vs Business</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <PieChart>
+              <Pie
+                data={expensesByType}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, value }) => `${name}: $${value.toFixed(0)}`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {expensesByType.map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
       <div>
         <h2 className="mb-4 text-xl font-semibold">Recent Transactions</h2>
         <TransactionsTable transactions={recentTransactions} />
