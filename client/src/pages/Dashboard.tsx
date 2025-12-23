@@ -1,12 +1,24 @@
 import { FinancialSummaryCard } from "@/components/FinancialSummaryCard";
 import { TransactionsTable } from "@/components/TransactionsTable";
-import { IncomeExpenseChart } from "@/components/IncomeExpenseChart";
-import { CategoryBreakdownChart } from "@/components/CategoryBreakdownChart";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
 import { ExcelImport } from "@/components/ExcelImport";
 import { TrendingUp, TrendingDown, Wallet, PiggyBank } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { PieChart, Pie, Cell, Legend, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  LineChart,
+  Line,
+} from "recharts";
 import type { Income, Expense, Asset, Liability } from "@shared/schema";
 
 export default function Dashboard() {
@@ -56,74 +68,166 @@ export default function Dashboard() {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 10);
 
-  // Calculate monthly chart data
-  const getMonthlyData = () => {
-    const monthlyMap = new Map<string, { income: number; expenses: number }>();
-    
-    incomeData.forEach(item => {
-      const month = new Date(item.date).toLocaleDateString('en-US', { month: 'short' });
-      const current = monthlyMap.get(month) || { income: 0, expenses: 0 };
-      monthlyMap.set(month, { ...current, income: current.income + parseFloat(item.amount) });
-    });
-
-    expenseData.forEach(item => {
-      const month = new Date(item.date).toLocaleDateString('en-US', { month: 'short' });
-      const current = monthlyMap.get(month) || { income: 0, expenses: 0 };
-      monthlyMap.set(month, { ...current, expenses: current.expenses + parseFloat(item.amount) });
-    });
-
-    return Array.from(monthlyMap.entries()).map(([month, data]) => ({
-      month,
-      ...data,
-    })).slice(-6);
-  };
-
-  // Calculate category breakdown
-  const getCategoryBreakdown = () => {
+  // Category breakdown for pie charts
+  const getCategoryBreakdownByPercentage = () => {
     const categoryMap = new Map<string, number>();
-    
     expenseData.forEach(item => {
       const current = categoryMap.get(item.category) || 0;
       categoryMap.set(item.category, current + parseFloat(item.amount));
     });
-
     return Array.from(categoryMap.entries()).map(([name, value]) => ({
       name,
-      value,
+      value: Math.round((value / totalExpenses) * 100),
     }));
   };
 
-  // Calculate assets vs liabilities
-  const getAssetsVsLiabilities = () => {
-    return [
-      { name: 'Assets', value: totalAssets },
-      { name: 'Liabilities', value: totalLiabilities },
-    ];
-  };
-
-  // Calculate income sources
-  const getIncomeSources = () => {
+  const getIncomeByPercentage = () => {
     const sourceMap = new Map<string, number>();
-    
     incomeData.forEach(item => {
       const current = sourceMap.get(item.source) || 0;
       sourceMap.set(item.source, current + parseFloat(item.amount));
     });
+    return Array.from(sourceMap.entries()).map(([name, value]) => ({
+      name,
+      value: Math.round((value / totalIncome) * 100),
+    }));
+  };
 
+  // Business vs Personal expenses
+  const getBusinessVsPersonal = () => {
+    const personalIncome = incomeData.filter(i => !i.isBusiness).reduce((sum, i) => sum + parseFloat(i.amount), 0);
+    const businessIncome = incomeData.filter(i => i.isBusiness).reduce((sum, i) => sum + parseFloat(i.amount), 0);
+    const personalExpense = expenseData.filter(e => !e.isBusiness).reduce((sum, e) => sum + parseFloat(e.amount), 0);
+    const businessExpense = expenseData.filter(e => e.isBusiness).reduce((sum, e) => sum + parseFloat(e.amount), 0);
+
+    return [
+      { name: 'Car Rental Income', value: businessIncome },
+      { name: 'Car Rental Expenses', value: businessExpense },
+    ];
+  };
+
+  // Income generation by source
+  const getIncomeBySource = () => {
+    const sourceMap = new Map<string, number>();
+    incomeData.forEach(item => {
+      const current = sourceMap.get(item.source) || 0;
+      sourceMap.set(item.source, current + parseFloat(item.amount));
+    });
     return Array.from(sourceMap.entries()).map(([name, value]) => ({
       name,
       value,
     }));
   };
 
-  const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+  // Expense variance
+  const getExpenseVariance = () => {
+    const categoryMap = new Map<string, number>();
+    expenseData.forEach(item => {
+      const current = categoryMap.get(item.category) || 0;
+      categoryMap.set(item.category, current + parseFloat(item.amount));
+    });
+    return Array.from(categoryMap.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  };
 
-  const personalExpenses = expenseData.filter(e => !e.isBusiness);
-  const businessExpenses = expenseData.filter(e => e.isBusiness);
-  const expensesByType = [
-    { name: 'Personal', value: personalExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0) },
-    { name: 'Business', value: businessExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0) },
-  ].filter(item => item.value > 0);
+  // Expense distribution
+  const getExpenseDistribution = () => {
+    const categoryMap = new Map<string, number>();
+    expenseData.forEach(item => {
+      const current = categoryMap.get(item.category) || 0;
+      categoryMap.set(item.category, current + parseFloat(item.amount));
+    });
+    return Array.from(categoryMap.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  };
+
+  // Monthly data for stacked charts
+  const getMonthlyExpenseData = () => {
+    const monthlyMap = new Map<string, { [key: string]: number }>();
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    months.forEach(month => {
+      monthlyMap.set(month, {});
+    });
+
+    expenseData.forEach(item => {
+      const month = new Date(item.date).toLocaleDateString('en-US', { month: 'short' });
+      const current = monthlyMap.get(month) || {};
+      const category = item.category;
+      current[category] = (current[category] || 0) + parseFloat(item.amount);
+      monthlyMap.set(month, current);
+    });
+
+    return Array.from(monthlyMap.entries()).map(([month, data]) => ({
+      month,
+      ...data,
+    }));
+  };
+
+  const getMonthlyIncomeData = () => {
+    const monthlyMap = new Map<string, { [key: string]: number }>();
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    months.forEach(month => {
+      monthlyMap.set(month, {});
+    });
+
+    incomeData.forEach(item => {
+      const month = new Date(item.date).toLocaleDateString('en-US', { month: 'short' });
+      const current = monthlyMap.get(month) || {};
+      const source = item.source;
+      current[source] = (current[source] || 0) + parseFloat(item.amount);
+      monthlyMap.set(month, current);
+    });
+
+    return Array.from(monthlyMap.entries()).map(([month, data]) => ({
+      month,
+      ...data,
+    }));
+  };
+
+  const getMonthlyIncomeVariance = () => {
+    const monthlyMap = new Map<string, { [key: string]: number }>();
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    months.forEach(month => {
+      monthlyMap.set(month, {});
+    });
+
+    incomeData.forEach(item => {
+      const month = new Date(item.date).toLocaleDateString('en-US', { month: 'short' });
+      const current = monthlyMap.get(month) || {};
+      const source = item.source;
+      current[source] = (current[source] || 0) + parseFloat(item.amount);
+      monthlyMap.set(month, current);
+    });
+
+    return Array.from(monthlyMap.entries()).map(([month, data]) => ({
+      month,
+      ...data,
+    }));
+  };
+
+  // Get top categories for sidebar cards
+  const getTopCategories = () => {
+    const categoryMap = new Map<string, number>();
+    expenseData.forEach(item => {
+      const current = categoryMap.get(item.category) || 0;
+      categoryMap.set(item.category, current + parseFloat(item.amount));
+    });
+    return Array.from(categoryMap.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 6);
+  };
+
+  const categoryColors = [
+    '#fbbf24', '#f97316', '#ef4444', '#06b6d4', '#3b82f6', '#8b5cf6',
+  ];
+
+  const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
   return (
     <div className="space-y-6">
@@ -165,78 +269,186 @@ export default function Dashboard() {
         />
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <IncomeExpenseChart data={getMonthlyData()} />
-        <CategoryBreakdownChart data={getCategoryBreakdown()} title="Expense Breakdown" />
-      </div>
+      {/* Top section with categories sidebar and top charts */}
+      <div className="grid gap-6 lg:grid-cols-4">
+        {/* Category Cards Sidebar */}
+        <div className="space-y-2">
+          {getTopCategories().map((cat, idx) => (
+            <div key={cat.name} className="rounded-lg p-3 text-white font-semibold" style={{ backgroundColor: categoryColors[idx % categoryColors.length] }}>
+              <div className="text-sm opacity-90">{cat.name}</div>
+              <div className="text-lg">${cat.value.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+            </div>
+          ))}
+        </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {getIncomeSources().length > 0 && (
-          <div className="rounded-lg border bg-card p-4">
-            <h2 className="mb-4 text-lg font-semibold">Income Sources</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={getIncomeSources()}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: $${Number(value).toFixed(0)}`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {getIncomeSources().map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-
-        {getAssetsVsLiabilities().some(item => item.value > 0) && (
-          <div className="rounded-lg border bg-card p-4">
-            <h2 className="mb-4 text-lg font-semibold">Assets vs Liabilities</h2>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={getAssetsVsLiabilities()}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
-                <Bar dataKey="value" fill="#3b82f6" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </div>
-
-      {expensesByType.length > 0 && (
+        {/* Total Expense % and Total Income % */}
         <div className="rounded-lg border bg-card p-4">
-          <h2 className="mb-4 text-lg font-semibold">Expenses: Personal vs Business</h2>
-          <ResponsiveContainer width="100%" height={300}>
+          <h2 className="mb-4 text-lg font-semibold">Total Expense %</h2>
+          <ResponsiveContainer width="100%" height={280}>
             <PieChart>
               <Pie
-                data={expensesByType}
+                data={getCategoryBreakdownByPercentage()}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, value }) => `${name}: $${value.toFixed(0)}`}
+                label={({ name, value }) => `${name} ${value}%`}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
               >
-                {expensesByType.map((_, index) => (
+                {getCategoryBreakdownByPercentage().map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
+              <Tooltip formatter={(value) => `${value}%`} />
             </PieChart>
           </ResponsiveContainer>
         </div>
-      )}
 
+        <div className="rounded-lg border bg-card p-4">
+          <h2 className="mb-4 text-lg font-semibold">Total Income %</h2>
+          <ResponsiveContainer width="100%" height={280}>
+            <PieChart>
+              <Pie
+                data={getIncomeByPercentage()}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                label={({ name, value }) => `${name} ${value}%`}
+                outerRadius={80}
+                fill="#8884d8"
+                dataKey="value"
+              >
+                {getIncomeByPercentage().map((_, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => `${value}%`} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Business Income vs Expenses */}
+        <div className="rounded-lg border bg-card p-4">
+          <h2 className="mb-4 text-lg font-semibold">Business Incomes vs Expenses</h2>
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart layout="vertical" data={getBusinessVsPersonal()}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis type="number" />
+              <YAxis dataKey="name" type="category" width={100} />
+              <Tooltip formatter={(value) => `$${Number(value).toFixed(0)}`} />
+              <Bar dataKey="value" fill="#3b82f6" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Income Generation Chart */}
+      <div className="rounded-lg border bg-card p-4">
+        <h2 className="mb-4 text-lg font-semibold">Income Generation</h2>
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={getIncomeBySource()}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" />
+            <YAxis />
+            <Tooltip formatter={(value) => `$${Number(value).toFixed(0)}`} />
+            <Bar dataKey="value" fill="#10b981" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* Expense Variance and Distribution */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="rounded-lg border bg-card p-4">
+          <h2 className="mb-4 text-lg font-semibold">Expense Variance</h2>
+          <ResponsiveContainer width="100%" height={350}>
+            <BarChart layout="vertical" data={getExpenseVariance()}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis type="number" />
+              <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 12 }} />
+              <Tooltip formatter={(value) => `$${Number(value).toFixed(0)}`} />
+              <Bar dataKey="value" fill="#f59e0b" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="rounded-lg border bg-card p-4">
+          <h2 className="mb-4 text-lg font-semibold">Expense Distribution</h2>
+          <ResponsiveContainer width="100%" height={350}>
+            <BarChart layout="vertical" data={getExpenseDistribution()}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis type="number" />
+              <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 12 }} />
+              <Tooltip formatter={(value) => `$${Number(value).toFixed(0)}`} />
+              <Bar dataKey="value" fill="#ef4444" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="rounded-lg border bg-card p-4">
+          <h2 className="mb-4 text-lg font-semibold">Income vs Expenses</h2>
+          <ResponsiveContainer width="100%" height={350}>
+            <BarChart data={getMonthlyIncomeData()}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip formatter={(value) => `$${Number(value).toFixed(0)}`} />
+              <Bar dataKey="income" fill="#10b981" stackId="a" />
+              <Bar dataKey="expenses" fill="#ef4444" stackId="a" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Monthly Charts */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="rounded-lg border bg-card p-4">
+          <h2 className="mb-4 text-lg font-semibold">Expense Monthly</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={getMonthlyExpenseData()}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip formatter={(value) => `$${Number(value).toFixed(0)}`} />
+              {Array.from(new Set(expenseData.map(e => e.category))).slice(0, 8).map((cat, idx) => (
+                <Bar key={cat} dataKey={cat} stackId="a" fill={COLORS[idx % COLORS.length]} />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="rounded-lg border bg-card p-4">
+          <h2 className="mb-4 text-lg font-semibold">Income Monthly</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={getMonthlyIncomeData()}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip formatter={(value) => `$${Number(value).toFixed(0)}`} />
+              {Array.from(new Set(incomeData.map(i => i.source))).slice(0, 8).map((src, idx) => (
+                <Bar key={src} dataKey={src} stackId="a" fill={COLORS[idx % COLORS.length]} />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="rounded-lg border bg-card p-4">
+          <h2 className="mb-4 text-lg font-semibold">Income Variance</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={getMonthlyIncomeVariance()}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip formatter={(value) => `$${Number(value).toFixed(0)}`} />
+              {Array.from(new Set(incomeData.map(i => i.source))).slice(0, 8).map((src, idx) => (
+                <Bar key={src} dataKey={src} stackId="a" fill={COLORS[idx % COLORS.length]} />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Recent Transactions */}
       <div>
         <h2 className="mb-4 text-xl font-semibold">Recent Transactions</h2>
         <TransactionsTable transactions={recentTransactions} />
