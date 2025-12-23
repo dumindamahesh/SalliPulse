@@ -1,0 +1,34 @@
+here are the some of required details inside the pages
+
+page 1 dashboard,
+i need kpis, charts, and other financial indicators in this page. for example net worth chart, income vs expenses, income by category, expenses by category, incoe varience, expesnes varience. and i need a timeline bar to select specific dates months or years to select and all data in the page should filter and another buttons to select the family member or business and all data should filter as of it.
+
+page 2 calender,
+i need current month calender to show in the page. month and years navigator shold be there. on each month box some key details neet to be show. and add data button also should there. add sta button should appear add data form. that form should link to database.
+
+page 3 business 1 betaje rent a car,
+in this must be shown all data regarding to my business, assets, income expenses, graphics. this dhold be a professional business page.
+
+page 4 analysis,
+in this must be shown all analysis as per other home finance tracking apps around the world, values cumilative as data. modern icons progress charts also include here.
+
+page 5 data table,
+i need a table containing same as excel file i attached in here. add unique transaction id column first up. this table should link to each and every funtion in this entire app. every raw in the table must be editable. save delete edit buttons should be in each row. page filters also need to be on top of the page. max visible rows, filers by column data also need. in down section after the table excel file upload, print download functions also need. column data dropdown lists also need. also specialy add add data button on top. when clicked it also need to show add data form same as from calender page. in that form need dropdown lists to select save button also need. get all column headers and dropdown data from the excel sheet.
+
+page 6 categories,
+in this page i need page to split into categoris like income, expense, banks, assets, liabilities, businesses. and under each category all accounts must be shown. accounts need to add edit delete. these acconts are linked to the database.
+
+page 7 assets,
+in this must be shown all assets values cumilative as data. modern icons progress charts also include here. add edit delete functions also need. 
+
+page 8 liabilities,
+in this must be shown all liabilities values cumilative as data. modern icons progress charts also include here. add edit delete functions also need
+
+page 9 banks,
+in this must be shown all bank accounts values cumilative as data. modern icons progress charts also include here. add edit delete functions also need
+
+page 10 goals,
+in this must be all our future goals, progress, timelines achivements progress. modern icons progress charts also include here. add edit delete functions also need. family menber vise filter needs
+
+page 11 business 2 forex,
+in this it should shown my forex income data. progress, timelines achivements progress. modern icons progress charts also include here. add edit delete functions also need. family menber vise filter needs
