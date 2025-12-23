@@ -10,6 +10,7 @@ export const income = pgTable("income", {
   amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
   source: text("source").notNull(),
   description: text("description"),
+  member: text("member").notNull().default("Other"),
   isBusiness: boolean("is_business").notNull().default(false),
 });
 
@@ -19,6 +20,7 @@ export const expenses = pgTable("expenses", {
   category: text("category").notNull(),
   amount: decimal("amount", { precision: 12, scale: 2 }).notNull(),
   description: text("description").notNull(),
+  member: text("member").notNull().default("Other"),
   isBusiness: boolean("is_business").notNull().default(false),
 });
 

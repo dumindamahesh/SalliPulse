@@ -32,6 +32,7 @@ export interface Transaction {
   amount: number;
   type: "income" | "expense";
   source?: string;
+  member?: string;
   isBusiness?: boolean;
 }
 
@@ -116,6 +117,7 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
             <TableRow>
               <TableHead>Date</TableHead>
               <TableHead>Category</TableHead>
+              <TableHead className="hidden md:table-cell">Member</TableHead>
               <TableHead className="hidden md:table-cell">Description</TableHead>
               <TableHead className="text-right">Amount</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -124,7 +126,7 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
           <TableBody>
             {transactions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground">
+                <TableCell colSpan={6} className="text-center text-muted-foreground">
                   No transactions found
                 </TableCell>
               </TableRow>
@@ -139,7 +141,10 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
                       {transaction.category}
                     </Badge>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell">
+                  <TableCell className="hidden md:table-cell text-sm">
+                    {transaction.member || "Other"}
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell text-sm">
                     {transaction.description}
                   </TableCell>
                   <TableCell

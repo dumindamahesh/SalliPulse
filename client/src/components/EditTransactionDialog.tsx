@@ -39,13 +39,15 @@ const formSchema = z.object({
   amount: z.string(),
   description: z.string().optional(),
   source: z.string().optional(),
+  member: z.string().default("Other"),
   isBusiness: z.boolean().default(false),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-const incomeCategories = ["Salary", "Freelance", "Investment", "Gift", "Rental Income", "Other"];
-const expenseCategories = ["Food", "Transportation", "Utilities", "Entertainment", "Shopping", "Healthcare", "Maintenance", "Other"];
+const memberNames = ["Mahesh", "Shalini", "Siluni", "Ralini", "Beta Je", "Other"];
+const incomeCategories = ["Salary", "Vehicle Rent", "Bookkeeping", "Forex", "Other"];
+const expenseCategories = ["Groceries/Snacks", "School Fees", "Class Fees", "Transport/Petrol", "Exam Fees", "Medical", "Beauty/salon", "Electricity", "Water", "Internet/Phones", "Gas", "Entertainment", "Popi/Tabi", "Lunch/Dinner", "Clothings", "Servant", "Books/Stationary", "Loan/Lease", "Interest", "Licence/Insurance", "Tyre/Battery", "Vehicle Repair", "Sundry"];
 
 interface EditTransactionDialogProps {
   transactionId: string;
@@ -109,6 +111,7 @@ export function EditTransactionDialog({ transactionId, onClose }: EditTransactio
             amount: transaction.amount,
             description: transaction.description || "",
             source: "source" in transaction ? transaction.source : "",
+            member: transaction.member || "Other",
             isBusiness: transaction.isBusiness || false,
           });
         }
@@ -176,6 +179,7 @@ export function EditTransactionDialog({ transactionId, onClose }: EditTransactio
       ...rest,
       date: new Date(data.date).toISOString(),
       amount: data.amount,
+      member: data.member || "Other",
       isBusiness: data.isBusiness,
     };
 
@@ -307,6 +311,30 @@ export function EditTransactionDialog({ transactionId, onClose }: EditTransactio
                       data-testid="input-description"
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="member"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Family Member</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger data-testid="select-member">
+                        <SelectValue placeholder="Select member" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {memberNames.map((member) => (
+                        <SelectItem key={member} value={member}>
+                          {member}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
