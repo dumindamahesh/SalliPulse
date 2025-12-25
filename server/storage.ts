@@ -317,5 +317,5 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-// Use in-memory storage temporarily due to database auth issues
-export const storage = new MemStorage();
+// Use PostgreSQL database storage for persistent data
+export const storage = new DatabaseStorage();
