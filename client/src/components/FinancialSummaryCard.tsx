@@ -20,15 +20,18 @@ export function FinancialSummaryCard({
   const isNegative = trend && trend < 0;
 
   return (
-    <Card data-testid={`card-summary-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+    <Card
+      className="glass border-none transition-all duration-300 hover:shadow-2xl hover:scale-[1.02]"
+      data-testid={`card-summary-${title.toLowerCase().replace(/\s+/g, '-')}`}
+    >
       <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+        <CardTitle className="text-sm font-bold uppercase tracking-widest text-muted-foreground/80">
           {title}
         </CardTitle>
         <Icon className={`h-4 w-4 ${iconColor}`} />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold tabular-nums" data-testid={`text-value-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+        <div className="text-3xl font-black tabular-nums tracking-tight text-gradient" data-testid={`text-value-${title.toLowerCase().replace(/\s+/g, '-')}`}>
           {value}
         </div>
         {trend !== undefined && (

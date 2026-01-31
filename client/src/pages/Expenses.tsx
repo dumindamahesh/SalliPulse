@@ -49,7 +49,7 @@ export default function ExpensesPage() {
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [filterMember, setFilterMember] = useState<string>("all");
   const [dateRange, setDateRange] = useState({
-    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+    from: new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1)
       .toISOString()
       .split("T")[0],
     to: new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0)
@@ -134,7 +134,7 @@ export default function ExpensesPage() {
     });
 
     return transactions;
-  }, [expenseData, sortBy, filterCategory, filterMember]);
+  }, [filteredData, sortBy, filterCategory, filterMember]);
 
   const categories = Array.from(
     new Set(

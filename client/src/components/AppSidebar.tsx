@@ -54,8 +54,7 @@ export function AppSidebar() {
       collapsible="icon"
       className={cn(
         "border-r transition-all duration-300 shadow-2xl",
-        // Background colors for both modes
-        isDark ? "bg-[#0B1120] border-white/5" : "bg-white border-slate-200",
+        "bg-sidebar border-sidebar-border"
       )}
     >
       <SidebarHeader className="py-8">
@@ -80,16 +79,14 @@ export function AppSidebar() {
             {/* Title - Dan dark mode eke sudu pata wenawa */}
             <span
               className={cn(
-                "text-lg font-bold tracking-tighter transition-colors",
-                isDark ? "text-white-800" : "text-white-50",
+                "text-lg font-bold tracking-tighter transition-colors text-sidebar-foreground"
               )}
             >
               SilliPulse
             </span>
             <span
               className={cn(
-                "text-[10px] font-bold uppercase tracking-widest leading-none",
-                isDark ? "text-emerald-400" : "text-emerald-600",
+                "text-[10px] font-bold uppercase tracking-widest leading-none text-primary"
               )}
             >
               Track.Save.Scale
@@ -117,12 +114,8 @@ export function AppSidebar() {
                   isActive={location === item.url}
                   className={cn(
                     "h-11 px-3 rounded-xl transition-all duration-200 group/item",
-                    // Non-active menu items වල contrast එක මෙතනින් වැඩි කළා
-                    isDark
-                      ? "hover:bg-white/5 text-slate-300 hover:text-emerald-400"
-                      : "hover:bg-emerald-50 text-slate-600 hover:text-emerald-700",
-                    // Active state colors
-                    "data-[active=true]:bg-emerald-600 data-[active=true]:text-white data-[active=true]:shadow-lg data-[active=true]:shadow-emerald-600/30",
+                    "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/70",
+                    "data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-lg",
                     "font-semibold",
                   )}
                 >
@@ -131,10 +124,8 @@ export function AppSidebar() {
                       className={cn(
                         "h-5 w-5 shrink-0 transition-colors",
                         location === item.url
-                          ? "text-white"
-                          : isDark
-                            ? "text-slate-400 group-hover/item:text-emerald-400"
-                            : "text-slate-500 group-hover/item:text-emerald-600",
+                          ? "text-sidebar-primary-foreground"
+                          : "text-sidebar-foreground/50 group-hover/item:text-sidebar-accent-foreground"
                       )}
                     />
                     <span className="text-sm truncate group-data-[collapsible=icon]:hidden">
@@ -165,10 +156,8 @@ export function AppSidebar() {
                   isActive={location === item.url}
                   className={cn(
                     "h-11 px-3 rounded-xl transition-all duration-200 group/item",
-                    isDark
-                      ? "hover:bg-white/5 text-slate-300 hover:text-blue-400"
-                      : "hover:bg-blue-50 text-slate-600 hover:text-blue-700",
-                    "data-[active=true]:bg-blue-600 data-[active=true]:text-white data-[active=true]:shadow-lg data-[active=true]:shadow-blue-600/30",
+                    "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/70",
+                    "data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-lg",
                     "font-semibold",
                   )}
                 >
@@ -177,10 +166,8 @@ export function AppSidebar() {
                       className={cn(
                         "h-5 w-5 shrink-0 transition-colors",
                         location === item.url
-                          ? "text-white"
-                          : isDark
-                            ? "text-slate-400 group-hover/item:text-blue-400"
-                            : "text-slate-500 group-hover/item:text-blue-600",
+                          ? "text-sidebar-primary-foreground"
+                          : "text-sidebar-foreground/50 group-hover/item:text-sidebar-accent-foreground"
                       )}
                     />
                     <span className="text-sm truncate group-data-[collapsible=icon]:hidden italic">
@@ -201,9 +188,7 @@ export function AppSidebar() {
             <SidebarMenuButton
               className={cn(
                 "h-12 w-full rounded-xl transition-all font-bold",
-                isDark
-                  ? "bg-slate-900 text-slate-200 hover:bg-slate-800"
-                  : "bg-slate-100 text-slate-900 hover:bg-slate-200 border border-slate-200",
+                "bg-sidebar-accent text-sidebar-foreground hover:bg-sidebar-accent/80 border border-sidebar-border"
               )}
             >
               <Settings
@@ -219,6 +204,6 @@ export function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-    </Sidebar>
+    </Sidebar >
   );
 }

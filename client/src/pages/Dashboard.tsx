@@ -293,7 +293,7 @@ export default function Dashboard() {
   };
 
   const formatCurrency = (val: any) =>
-    `Rs. ${Number(val).toLocaleString("en-US")}`;
+    `Rs. ${Number(val).toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
   const axisStyle = { fontSize: "11px", fontWeight: 500 };
 
   const getTopCategories = () => {
@@ -318,14 +318,14 @@ export default function Dashboard() {
   ];
 
   const COLORS = [
-    "#3b82f6",
-    "#ef4444",
-    "#10b981",
-    "#f59e0b",
-    "#8b5cf6",
-    "#ec4899",
-    "#06b6d4",
-    "#84cc16",
+    'hsl(221, 83%, 53%)', // Primary Blue
+    'hsl(142, 71%, 45%)', // Green
+    'hsl(12, 76%, 61%)',  // Orange
+    'hsl(262, 83%, 58%)', // Purple
+    'hsl(43, 96%, 64%)',  // Yellow
+    'hsl(340, 75%, 55%)', // Pink
+    'hsl(190, 90%, 50%)', // Cyan
+    'hsl(280, 65%, 60%)'  // Violet
   ];
 
   // Custom Gradient for Charts
@@ -342,7 +342,7 @@ export default function Dashboard() {
       {/* Background image eka ain kara, light background ekak damma */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-4xl font-black tracking-tight text-gradient">
             Dashboard
           </h1>
           <p className="text-muted-foreground">
@@ -407,18 +407,18 @@ export default function Dashboard() {
             text: "text-rose-600",
           },
           {
-            title: "Net Worth",
-            val: netWorth,
-            icon: Wallet,
-            color: "bg-blue-600",
-            text: "text-blue-600",
-          },
-          {
             title: "Savings",
             val: savings,
             icon: PiggyBank,
             color: "bg-amber-500",
             text: "text-amber-600",
+          },
+          {
+            title: "Net Worth",
+            val: netWorth,
+            icon: Wallet,
+            color: "bg-blue-600",
+            text: "text-blue-600",
           },
         ].map((stat, i) => (
           <div
@@ -439,7 +439,7 @@ export default function Dashboard() {
                   {stat.title}
                 </p>
                 <h3 className={`text-2xl font-black ${stat.text}`}>
-                  Rs. {stat.val.toLocaleString()}
+                  Rs. {stat.val.toLocaleString("en-US", { maximumFractionDigits: 0 })}
                 </h3>
               </div>
             </div>
@@ -462,7 +462,7 @@ export default function Dashboard() {
                       {cat.name}
                     </span>
                     <span className="text-sm font-bold text-emerald-400">
-                      Rs. {cat.value.toLocaleString()}
+                      Rs. {cat.value.toLocaleString("en-US", { maximumFractionDigits: 0 })}
                     </span>
                   </div>
                   <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
@@ -834,17 +834,17 @@ export default function Dashboard() {
         </div>
       </div>
       {/* Recent Activity */}
-            <div className="rounded-[2rem] border bg-white shadow-sm overflow-hidden">
-              <div className="px-8 py-6 border-b bg-slate-50/50 flex justify-between items-center">
-                <h2 className="font-bold text-[#1B263B]">Recent Ledger Entries</h2>
-                <Button variant="link" className="text-[#00A86B] font-bold">
-                  View All
-                </Button>
-              </div>
-              <div className="p-4">
-                <TransactionsTable transactions={recentTransactions} />
-              </div>
-            </div>
-          </div>
-        );
-      }
+      <div className="rounded-[2rem] border bg-white shadow-sm overflow-hidden">
+        <div className="px-8 py-6 border-b bg-slate-50/50 flex justify-between items-center">
+          <h2 className="font-bold text-[#1B263B]">Recent Ledger Entries</h2>
+          <Button variant="link" className="text-[#00A86B] font-bold">
+            View All
+          </Button>
+        </div>
+        <div className="p-4">
+          <TransactionsTable transactions={recentTransactions} />
+        </div>
+      </div>
+    </div>
+  );
+}
