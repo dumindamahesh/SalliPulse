@@ -27,11 +27,7 @@ const getCategoryIcon = (category: string) => {
 
 export function AssetsList({ assets }: AssetsListProps) {
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      minimumFractionDigits: 0,
-    }).format(amount);
+    return `Rs. ${amount.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
   };
 
   const totalValue = assets.reduce((sum, asset) => sum + asset.currentValue, 0);

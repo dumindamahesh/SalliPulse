@@ -14,6 +14,7 @@ import Assets from "@/pages/Assets";
 import Liabilities from "@/pages/Liabilities";
 import Investments from "@/pages/Investments";
 import Business from "@/pages/Business";
+import Forex from "@/pages/Forex";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -27,6 +28,7 @@ function Router() {
       <Route path="/liabilities" component={Liabilities} />
       <Route path="/investments" component={Investments} />
       <Route path="/business" component={Business} />
+      <Route path="/forex" component={Forex} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -34,7 +36,8 @@ function Router() {
 
 function App() {
   const style = {
-    "--sidebar-width": "16rem",
+    "--sidebar-width": "18rem",
+    "--sidebar-width-icon": "4.5rem",
   };
 
   return (
@@ -44,12 +47,12 @@ function App() {
           <div className="flex h-screen w-full">
             <AppSidebar />
             <div className="flex flex-1 flex-col">
-              <header className="flex items-center justify-between border-b p-4">
-                <SidebarTrigger data-testid="button-sidebar-toggle" />
+              <header className="flex items-center justify-between border-b p-2 sm:p-4">
+                <SidebarTrigger data-testid="button-sidebar-toggle" className="h-8 w-8" />
                 <ThemeToggle />
               </header>
-              <main className="flex-1 overflow-auto p-6">
-                <div className="mx-auto max-w-7xl">
+              <main className="flex-1 overflow-auto p-3 sm:p-6">
+                <div className="mx-auto w-full max-w-7xl px-0 sm:px-4">
                   <Router />
                 </div>
               </main>

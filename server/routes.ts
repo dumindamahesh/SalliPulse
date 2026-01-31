@@ -8,6 +8,8 @@ import {
   insertLiabilitySchema,
   insertInvestmentSchema,
   insertRentalFleetSchema,
+  insertForexSchema,
+  insertTradingAccountSchema,
 } from "@shared/schema";
 import multer from "multer";
 import * as XLSX from "xlsx";
@@ -34,39 +36,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
         for (const row of data as any[]) {
           try {
             // Try to detect if it's income or expense based on common column patterns
-            const hasAmount = row.Amount || row.amount;
+            const hasAmount = row.Amount || row.amount || row.value || row.Value || row.Price || row.price;
             const hasDate = row.Date || row.date;
-            const hasCategory = row.Category || row.category;
-            const hasDescription = row.Description || row.description;
+            const hasCategory = row.Category || row.category || row.Type || row.type;
+            const hasDescription = row.Description || row.description || row.Notes || row.notes || row.Remarks || row.remarks;
+            const hasMember = row.Member || row.member || row.Person || row.person || row.Name || row.name || "Other";
 
             if (!hasAmount || !hasDate) {
+              results.errors.push("Skipped row: missing Amount or Date");
               continue; // Skip rows without essential data
             }
 
-            const amount = parseFloat(String(hasAmount).replace(/[$,]/g, ""));
+            const amount = parseFloat(String(hasAmount).replace(/[$,₹\s]/g, ""));
+            
+            if (isNaN(amount)) {
+              results.errors.push(`Skipped row: invalid amount "${hasAmount}"`);
+              continue;
+            }
+
             let date: Date;
 
-            // Parse date
+            // Parse date more robustly
             if (typeof hasDate === "number") {
               // Excel date number - convert to JS date
               const excelEpoch = new Date(1899, 11, 30);
               date = new Date(excelEpoch.getTime() + hasDate * 86400000);
             } else {
-              date = new Date(hasDate);
+              date = new Date(String(hasDate));
+              if (isNaN(date.getTime())) {
+                results.errors.push(`Skipped row: invalid date "${hasDate}"`);
+                continue;
+              }
             }
 
             // Determine if it's income or expense
             const isIncome = amount > 0 || 
                            sheetName.toLowerCase().includes("income") ||
-                           (row.Type && row.Type.toLowerCase().includes("income"));
+                           (hasCategory && String(hasCategory).toLowerCase().includes("income")) ||
+                           (row.Type && String(row.Type).toLowerCase().includes("income"));
 
             if (isIncome) {
               const incomeData = {
                 date: date,
                 amount: String(Math.abs(amount)),
-                category: hasCategory || "Other",
-                source: row.Source || row.source || "Import",
-                description: hasDescription || "",
+                category: String(hasCategory || "Other"),
+                source: String(row.Source || row.source || "Import"),
+                description: String(hasDescription || ""),
+                member: String(hasMember),
                 isBusiness: false,
               };
               await storage.createIncome(incomeData);
@@ -75,8 +91,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               const expenseData = {
                 date: date,
                 amount: String(Math.abs(amount)),
-                category: hasCategory || "Other",
-                description: hasDescription || "Imported expense",
+                category: String(hasCategory || "Other"),
+                description: String(hasDescription || "Imported expense"),
+                member: String(hasMember),
                 isBusiness: false,
               };
               await storage.createExpense(expenseData);
@@ -106,8 +123,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const income = await storage.getAllIncome();
       res.json(income);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch income" });
+    } catch (error: any) {
+      console.error("Error fetching income:", error);
+      res.status(500).json({ error: "Failed to fetch income: " + error.message });
     }
   });
 
@@ -156,8 +174,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const expenses = await storage.getAllExpenses();
       res.json(expenses);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch expenses" });
+    } catch (error: any) {
+      console.error("Error fetching expenses:", error);
+      res.status(500).json({ error: "Failed to fetch expenses: " + error.message });
     }
   });
 
@@ -398,6 +417,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: "Failed to delete vehicle" });
+    }
+  });
+
+  // Forex routes
+  app.get("/api/forex", async (req, res) => {
+    try {
+      const forexData = await storage.getAllForex();
+      res.json(forexData);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch forex data" });
+    }
+  });
+
+  app.get("/api/forex/:id", async (req, res) => {
+    try {
+      const data = await storage.getForexById(req.params.id);
+      if (!data) {
+        return res.status(404).json({ error: "Forex record not found" });
+      }
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch forex record" });
+    }
+  });
+
+  app.post("/api/forex", async (req, res) => {
+    try {
+      const validatedData = insertForexSchema.parse(req.body);
+      const data = await storage.createForex(validatedData);
+      res.status(201).json(data);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid forex data" });
+    }
+  });
+
+  app.patch("/api/forex/:id", async (req, res) => {
+    try {
+      const data = await storage.updateForex(req.params.id, req.body);
+      res.json(data);
+    } catch (error) {
+      res.status(400).json({ error: "Failed to update forex record" });
+    }
+  });
+
+  app.delete("/api/forex/:id", async (req, res) => {
+    try {
+      await storage.deleteForex(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete forex record" });
+    }
+  });
+
+  // Trading Account routes
+  app.get("/api/trading-accounts", async (req, res) => {
+    try {
+      const accounts = await storage.getAllTradingAccounts();
+      res.json(accounts);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch trading accounts" });
+    }
+  });
+
+  app.post("/api/trading-accounts", async (req, res) => {
+    try {
+      const account = await storage.createTradingAccount(req.body);
+      res.status(201).json(account);
+    } catch (error: any) {
+      console.error("Trading account creation error:", error);
+      res.status(400).json({ error: "Invalid trading account data", details: error.message });
+    }
+  });
+
+  app.patch("/api/trading-accounts/:id", async (req, res) => {
+    try {
+      const account = await storage.updateTradingAccount(req.params.id, req.body);
+      res.json(account);
+    } catch (error) {
+      res.status(400).json({ error: "Failed to update trading account" });
+    }
+  });
+
+  app.delete("/api/trading-accounts/:id", async (req, res) => {
+    try {
+      await storage.deleteTradingAccount(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete trading account" });
     }
   });
 

@@ -30,7 +30,7 @@ import { z } from "zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { Income, Expense } from "@shared/schema";
+import type { Income, Expense, RentalFleet } from "@shared/schema";
 
 const formSchema = z.object({
   type: z.enum(["income", "expense"]),
@@ -41,6 +41,7 @@ const formSchema = z.object({
   source: z.string().optional(),
   member: z.string().default("Other"),
   isBusiness: z.boolean().default(false),
+  vehicleId: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -57,6 +58,10 @@ interface EditTransactionDialogProps {
 export function EditTransactionDialog({ transactionId, onClose }: EditTransactionDialogProps) {
   const { toast } = useToast();
   const [transactionType, setTransactionType] = useState<"income" | "expense">("expense");
+
+  const { data: fleetData = [] } = useQuery<RentalFleet[]>({
+    queryKey: ["/api/rental-fleet"],
+  });
 
   // Fetch transaction data
   const incomeQuery = useQuery<Income>({
@@ -87,33 +92,45 @@ export function EditTransactionDialog({ transactionId, onClose }: EditTransactio
     const fetchTransaction = async () => {
       try {
         let transaction: Income | Expense | null = null;
+        let type: "income" | "expense" = "expense";
         
         // Try to fetch as income first
         const incomeResponse = await fetch(`/api/income/${transactionId}`);
         if (incomeResponse.ok) {
           transaction = await incomeResponse.json();
+          type = "income";
           setTransactionType("income");
         } else {
           // Try as expense
           const expenseResponse = await fetch(`/api/expenses/${transactionId}`);
           if (expenseResponse.ok) {
             transaction = await expenseResponse.json();
+            type = "expense";
             setTransactionType("expense");
           }
         }
 
         if (transaction) {
           const date = new Date(transaction.date);
-          form.reset({
-            type: "source" in transaction ? "income" : "expense",
+          const resetValues = {
+            type,
             date: date.toISOString().split("T")[0],
             category: transaction.category,
             amount: transaction.amount,
             description: transaction.description || "",
-            source: "source" in transaction ? transaction.source : "",
+            source: "source" in transaction ? (transaction as any).source : "",
             member: transaction.member || "Other",
             isBusiness: transaction.isBusiness || false,
-          });
+            vehicleId: transaction.vehicleId || undefined,
+          };
+          
+          form.reset(resetValues);
+          
+          // Use setTimeout to ensure the category is set after the select items have rendered
+          setTimeout(() => {
+            form.setValue("category", transaction.category);
+            form.setValue("type", type);
+          }, 0);
         }
       } catch (error) {
         toast({
@@ -181,6 +198,7 @@ export function EditTransactionDialog({ transactionId, onClose }: EditTransactio
       amount: data.amount,
       member: data.member || "Other",
       isBusiness: data.isBusiness,
+      vehicleId: data.isBusiness ? data.vehicleId : null,
     };
 
     if (type === "income") {
@@ -360,6 +378,33 @@ export function EditTransactionDialog({ transactionId, onClose }: EditTransactio
                 </FormItem>
               )}
             />
+            {form.watch("isBusiness") && (
+              <FormField
+                control={form.control}
+                name="vehicleId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Vehicle (Optional)</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || "none"}>
+                      <FormControl>
+                        <SelectTrigger data-testid="select-vehicle">
+                          <SelectValue placeholder="Select vehicle" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        {fleetData.map((vehicle) => (
+                          <SelectItem key={vehicle.id} value={vehicle.id}>
+                            {vehicle.year} {vehicle.make} {vehicle.model} ({vehicle.licensePlate})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <div className="flex justify-end gap-2">
               <Button
                 type="button"

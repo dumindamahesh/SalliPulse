@@ -5,18 +5,24 @@ import {
   liabilities,
   investments,
   rentalFleet,
+  forex,
+  tradingAccounts,
   type Income,
   type Expense,
   type Asset,
   type Liability,
   type Investment,
   type RentalFleet,
+  type Forex,
+  type TradingAccount,
   type InsertIncome,
   type InsertExpense,
   type InsertAsset,
   type InsertLiability,
   type InsertInvestment,
   type InsertRentalFleet,
+  type InsertForex,
+  type InsertTradingAccount,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -63,6 +69,19 @@ export interface IStorage {
   createRentalFleet(data: InsertRentalFleet): Promise<RentalFleet>;
   updateRentalFleet(id: string, data: Partial<InsertRentalFleet>): Promise<RentalFleet>;
   deleteRentalFleet(id: string): Promise<void>;
+
+  // Forex operations
+  getAllForex(): Promise<Forex[]>;
+  getForexById(id: string): Promise<Forex | undefined>;
+  createForex(data: InsertForex): Promise<Forex>;
+  updateForex(id: string, data: Partial<InsertForex>): Promise<Forex>;
+  deleteForex(id: string): Promise<void>;
+
+  // Trading Account operations
+  getAllTradingAccounts(): Promise<TradingAccount[]>;
+  createTradingAccount(data: InsertTradingAccount): Promise<TradingAccount>;
+  updateTradingAccount(id: string, data: Partial<InsertTradingAccount>): Promise<TradingAccount>;
+  deleteTradingAccount(id: string): Promise<void>;
 }
 
 // In-memory storage implementation
@@ -78,7 +97,8 @@ class MemStorage implements IStorage {
   async getIncomeById(id: string): Promise<Income | undefined> { return this.incomeMap.get(id); }
   async createIncome(data: InsertIncome): Promise<Income> {
     const id = Math.random().toString(36).substr(2, 9);
-    const item = { ...data, id, date: new Date(data.date) } as Income;
+    const dateStr = typeof data.date === 'string' ? data.date : (data.date as any).toISOString();
+    const item = { ...data, id, date: dateStr } as unknown as Income;
     this.incomeMap.set(id, item);
     return item;
   }
@@ -94,7 +114,8 @@ class MemStorage implements IStorage {
   async getExpenseById(id: string): Promise<Expense | undefined> { return this.expenseMap.get(id); }
   async createExpense(data: InsertExpense): Promise<Expense> {
     const id = Math.random().toString(36).substr(2, 9);
-    const item = { ...data, id, date: new Date(data.date) } as Expense;
+    const dateStr = typeof data.date === 'string' ? data.date : (data.date as any).toISOString();
+    const item = { ...data, id, date: dateStr } as unknown as Expense;
     this.expenseMap.set(id, item);
     return item;
   }
@@ -169,6 +190,48 @@ class MemStorage implements IStorage {
     return updated;
   }
   async deleteRentalFleet(id: string): Promise<void> { this.fleetMap.delete(id); }
+
+  private forexMap: Map<string, Forex> = new Map();
+  async getAllForex(): Promise<Forex[]> { return Array.from(this.forexMap.values()); }
+  async getForexById(id: string): Promise<Forex | undefined> { return this.forexMap.get(id); }
+  async createForex(data: InsertForex): Promise<Forex> {
+    const id = Math.random().toString(36).substr(2, 9);
+    const dateStr = typeof data.date === 'string' ? data.date : (data.date as any).toISOString();
+    const item = { ...data, id, date: dateStr } as unknown as Forex;
+    this.forexMap.set(id, item);
+    return item;
+  }
+  async updateForex(id: string, data: Partial<InsertForex>): Promise<Forex> {
+    const item = this.forexMap.get(id)!;
+    const updated = { ...item, ...data } as Forex;
+    this.forexMap.set(id, updated);
+    return updated;
+  }
+  private accountMap: Map<string, TradingAccount> = new Map();
+
+  async getAllTradingAccounts(): Promise<TradingAccount[]> { return Array.from(this.accountMap.values()); }
+  async createTradingAccount(data: InsertTradingAccount): Promise<TradingAccount> {
+    const id = generateId();
+    const item = { ...data, id } as TradingAccount;
+    this.accountMap.set(id, item);
+    return item;
+  }
+  async updateTradingAccount(id: string, data: Partial<InsertTradingAccount>): Promise<TradingAccount> {
+    const item = this.accountMap.get(id)!;
+    const updated = { ...item, ...data } as TradingAccount;
+    this.accountMap.set(id, updated);
+    return updated;
+  }
+  async deleteTradingAccount(id: string): Promise<void> { this.accountMap.delete(id); }
+}
+
+function generateId(): string {
+  return Math.random().toString(36).substr(2, 9);
+}
+
+function formatDate(date: Date | string): string {
+  if (typeof date === 'string') return date;
+  return date.toISOString();
 }
 
 export class DatabaseStorage implements IStorage {
@@ -183,13 +246,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createIncome(data: InsertIncome): Promise<Income> {
-    const [result] = await db.insert(income).values(data).returning();
-    return result;
+    const id = generateId();
+    const incomeData = {
+      ...data,
+      id,
+      date: formatDate(data.date),
+    };
+    await db.insert(income).values(incomeData);
+    const [result] = await db.select().from(income).where(eq(income.id, id));
+    return result!;
   }
 
   async updateIncome(id: string, data: Partial<InsertIncome>): Promise<Income> {
-    const [result] = await db.update(income).set(data).where(eq(income.id, id)).returning();
-    return result;
+    const updateData: any = { ...data };
+    if (updateData.date) {
+      updateData.date = formatDate(updateData.date);
+    }
+    await db.update(income).set(updateData).where(eq(income.id, id));
+    const [result] = await db.select().from(income).where(eq(income.id, id));
+    return result!;
   }
 
   async deleteIncome(id: string): Promise<void> {
@@ -207,13 +282,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createExpense(data: InsertExpense): Promise<Expense> {
-    const [result] = await db.insert(expenses).values(data).returning();
-    return result;
+    const id = generateId();
+    const expenseData = {
+      ...data,
+      id,
+      date: formatDate(data.date),
+    };
+    await db.insert(expenses).values(expenseData);
+    const [result] = await db.select().from(expenses).where(eq(expenses.id, id));
+    return result!;
   }
 
   async updateExpense(id: string, data: Partial<InsertExpense>): Promise<Expense> {
-    const [result] = await db.update(expenses).set(data).where(eq(expenses.id, id)).returning();
-    return result;
+    const updateData: any = { ...data };
+    if (updateData.date) {
+      updateData.date = formatDate(updateData.date);
+    }
+    await db.update(expenses).set(updateData).where(eq(expenses.id, id));
+    const [result] = await db.select().from(expenses).where(eq(expenses.id, id));
+    return result!;
   }
 
   async deleteExpense(id: string): Promise<void> {
@@ -231,13 +318,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createAsset(data: InsertAsset): Promise<Asset> {
-    const [result] = await db.insert(assets).values(data).returning();
-    return result;
+    const id = generateId();
+    const assetData = { ...data, id };
+    await db.insert(assets).values(assetData);
+    const [result] = await db.select().from(assets).where(eq(assets.id, id));
+    return result!;
   }
 
   async updateAsset(id: string, data: Partial<InsertAsset>): Promise<Asset> {
-    const [result] = await db.update(assets).set(data).where(eq(assets.id, id)).returning();
-    return result;
+    await db.update(assets).set(data).where(eq(assets.id, id));
+    const [result] = await db.select().from(assets).where(eq(assets.id, id));
+    return result!;
   }
 
   async deleteAsset(id: string): Promise<void> {
@@ -255,13 +346,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createLiability(data: InsertLiability): Promise<Liability> {
-    const [result] = await db.insert(liabilities).values(data).returning();
-    return result;
+    const id = generateId();
+    const liabilityData = { ...data, id };
+    await db.insert(liabilities).values(liabilityData);
+    const [result] = await db.select().from(liabilities).where(eq(liabilities.id, id));
+    return result!;
   }
 
   async updateLiability(id: string, data: Partial<InsertLiability>): Promise<Liability> {
-    const [result] = await db.update(liabilities).set(data).where(eq(liabilities.id, id)).returning();
-    return result;
+    await db.update(liabilities).set(data).where(eq(liabilities.id, id));
+    const [result] = await db.select().from(liabilities).where(eq(liabilities.id, id));
+    return result!;
   }
 
   async deleteLiability(id: string): Promise<void> {
@@ -279,13 +374,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createInvestment(data: InsertInvestment): Promise<Investment> {
-    const [result] = await db.insert(investments).values(data).returning();
-    return result;
+    const id = generateId();
+    const investmentData = { ...data, id };
+    await db.insert(investments).values(investmentData);
+    const [result] = await db.select().from(investments).where(eq(investments.id, id));
+    return result!;
   }
 
   async updateInvestment(id: string, data: Partial<InsertInvestment>): Promise<Investment> {
-    const [result] = await db.update(investments).set(data).where(eq(investments.id, id)).returning();
-    return result;
+    await db.update(investments).set(data).where(eq(investments.id, id));
+    const [result] = await db.select().from(investments).where(eq(investments.id, id));
+    return result!;
   }
 
   async deleteInvestment(id: string): Promise<void> {
@@ -303,20 +402,82 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createRentalFleet(data: InsertRentalFleet): Promise<RentalFleet> {
-    const [result] = await db.insert(rentalFleet).values(data).returning();
-    return result;
+    const id = generateId();
+    const fleetData = { ...data, id };
+    await db.insert(rentalFleet).values(fleetData);
+    const [result] = await db.select().from(rentalFleet).where(eq(rentalFleet.id, id));
+    return result!;
   }
 
   async updateRentalFleet(id: string, data: Partial<InsertRentalFleet>): Promise<RentalFleet> {
-    const [result] = await db.update(rentalFleet).set(data).where(eq(rentalFleet.id, id)).returning();
-    return result;
+    await db.update(rentalFleet).set(data).where(eq(rentalFleet.id, id));
+    const [result] = await db.select().from(rentalFleet).where(eq(rentalFleet.id, id));
+    return result!;
   }
 
   async deleteRentalFleet(id: string): Promise<void> {
     await db.delete(rentalFleet).where(eq(rentalFleet.id, id));
   }
+
+  // Forex operations
+  async getAllForex(): Promise<Forex[]> {
+    return await db.select().from(forex);
+  }
+
+  async getForexById(id: string): Promise<Forex | undefined> {
+    const [result] = await db.select().from(forex).where(eq(forex.id, id));
+    return result;
+  }
+
+  async createForex(data: InsertForex): Promise<Forex> {
+    const id = generateId();
+    const forexData = {
+      ...data,
+      id,
+      date: formatDate(data.date),
+    };
+    await db.insert(forex).values(forexData);
+    const [result] = await db.select().from(forex).where(eq(forex.id, id));
+    return result!;
+  }
+
+  async updateForex(id: string, data: Partial<InsertForex>): Promise<Forex> {
+    const updateData: any = { ...data };
+    if (updateData.date) {
+      updateData.date = formatDate(updateData.date);
+    }
+    await db.update(forex).set(updateData).where(eq(forex.id, id));
+    const [result] = await db.select().from(forex).where(eq(forex.id, id));
+    return result!;
+  }
+
+  async deleteForex(id: string): Promise<void> {
+    await db.delete(forex).where(eq(forex.id, id));
+  }
+
+  // Trading Account operations
+  async getAllTradingAccounts(): Promise<TradingAccount[]> {
+    return await db.select().from(tradingAccounts);
+  }
+
+  async createTradingAccount(data: InsertTradingAccount): Promise<TradingAccount> {
+    const id = generateId();
+    const accountData = { ...data, id };
+    await db.insert(tradingAccounts).values(accountData);
+    const [result] = await db.select().from(tradingAccounts).where(eq(tradingAccounts.id, id));
+    return result!;
+  }
+
+  async updateTradingAccount(id: string, data: Partial<InsertTradingAccount>): Promise<TradingAccount> {
+    await db.update(tradingAccounts).set(data).where(eq(tradingAccounts.id, id));
+    const [result] = await db.select().from(tradingAccounts).where(eq(tradingAccounts.id, id));
+    return result!;
+  }
+
+  async deleteTradingAccount(id: string): Promise<void> {
+    await db.delete(tradingAccounts).where(eq(tradingAccounts.id, id));
+  }
 }
 
-// Use in-memory storage temporarily due to database authentication issues
-// Switch back to DatabaseStorage once database is properly configured
-export const storage = new MemStorage();
+// Use SQLite database storage for persistent data (no authentication needed)
+export const storage = new DatabaseStorage();

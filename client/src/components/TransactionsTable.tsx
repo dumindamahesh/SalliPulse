@@ -34,6 +34,7 @@ export interface Transaction {
   source?: string;
   member?: string;
   isBusiness?: boolean;
+  vehicleId?: string;
 }
 
 interface TransactionsTableProps {
@@ -46,10 +47,7 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
   const { toast } = useToast();
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
+    return `Rs. ${amount.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
   };
 
   const formatDate = (dateString: string) => {
@@ -118,7 +116,9 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
               <TableHead>Date</TableHead>
               <TableHead>Category</TableHead>
               <TableHead className="hidden md:table-cell">Member</TableHead>
-              <TableHead className="hidden md:table-cell">Description</TableHead>
+              <TableHead className="hidden md:table-cell">
+                Description
+              </TableHead>
               <TableHead className="text-right">Amount</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -126,13 +126,19 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
           <TableBody>
             {transactions.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground">
+                <TableCell
+                  colSpan={6}
+                  className="text-center text-muted-foreground"
+                >
                   No transactions found
                 </TableCell>
               </TableRow>
             ) : (
               transactions.map((transaction) => (
-                <TableRow key={transaction.id} data-testid={`row-transaction-${transaction.id}`}>
+                <TableRow
+                  key={transaction.id}
+                  data-testid={`row-transaction-${transaction.id}`}
+                >
                   <TableCell className="font-medium">
                     {formatDate(transaction.date)}
                   </TableCell>
@@ -149,7 +155,9 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
                   </TableCell>
                   <TableCell
                     className={`text-right font-semibold tabular-nums ${
-                      transaction.type === "income" ? "text-chart-2" : "text-foreground"
+                      transaction.type === "income"
+                        ? "text-chart-2"
+                        : "text-foreground"
                     }`}
                   >
                     {transaction.type === "income" ? "+" : "-"}
@@ -191,17 +199,24 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
       )}
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteConfirm !== null} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+      <AlertDialog
+        open={deleteConfirm !== null}
+        onOpenChange={(open) => !open && setDeleteConfirm(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Transaction</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this transaction? This action cannot be undone.
+              Are you sure you want to delete this transaction? This action
+              cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            onClick={() => deleteConfirm && handleDelete(transactions.find(t => t.id === deleteConfirm)!)}
+            onClick={() =>
+              deleteConfirm &&
+              handleDelete(transactions.find((t) => t.id === deleteConfirm)!)
+            }
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
             Delete

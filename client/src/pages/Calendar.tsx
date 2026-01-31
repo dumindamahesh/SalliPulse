@@ -45,20 +45,27 @@ export default function Calendar() {
 
   // Get transactions for a specific date
   const getTransactionsForDate = (day: number) => {
-    const dateStr = new Date(
+    const date = new Date(
       currentDate.getFullYear(),
       currentDate.getMonth(),
       day
-    )
-      .toISOString()
-      .split("T")[0];
+    );
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
     const dayIncome = incomeData
-      .filter((t) => new Date(t.date).toISOString().split("T")[0] === dateStr)
+      .filter((t) => {
+        const tDate = new Date(t.date);
+        const tDateStr = `${tDate.getFullYear()}-${String(tDate.getMonth() + 1).padStart(2, '0')}-${String(tDate.getDate()).padStart(2, '0')}`;
+        return tDateStr === dateStr;
+      })
       .reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
     const dayExpense = expenseData
-      .filter((t) => new Date(t.date).toISOString().split("T")[0] === dateStr)
+      .filter((t) => {
+        const tDate = new Date(t.date);
+        const tDateStr = `${tDate.getFullYear()}-${String(tDate.getMonth() + 1).padStart(2, '0')}-${String(tDate.getDate()).padStart(2, '0')}`;
+        return tDateStr === dateStr;
+      })
       .reduce((sum, t) => sum + parseFloat(t.amount), 0);
 
     return { income: dayIncome, expense: dayExpense };
@@ -174,12 +181,12 @@ export default function Calendar() {
                       <div className="space-y-1 text-xs">
                         {transactions.income > 0 && (
                           <div className="text-green-600 dark:text-green-400">
-                            +₹{transactions.income.toFixed(0)}
+                            +Rs. {transactions.income.toFixed(0)}
                           </div>
                         )}
                         {transactions.expense > 0 && (
                           <div className="text-red-600 dark:text-red-400">
-                            -₹{transactions.expense.toFixed(0)}
+                            -Rs. {transactions.expense.toFixed(0)}
                           </div>
                         )}
                       </div>

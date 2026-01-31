@@ -28,7 +28,7 @@ export function FinancialSummaryCard({
         <Icon className={`h-4 w-4 ${iconColor}`} />
       </CardHeader>
       <CardContent>
-        <div className="text-4xl font-bold tabular-nums" data-testid={`text-value-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+        <div className="text-2xl font-bold tabular-nums" data-testid={`text-value-${title.toLowerCase().replace(/\s+/g, '-')}`}>
           {value}
         </div>
         {trend !== undefined && (
