@@ -68,9 +68,30 @@ function initializeDb() {
       notes TEXT,
       license_due_date TEXT,
       insurance_due_date TEXT
+    )`,
+    `CREATE TABLE IF NOT EXISTS recurring_bills (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL,
+      category TEXT NOT NULL,
+      amount TEXT NOT NULL,
+      frequency TEXT NOT NULL DEFAULT 'monthly',
+      next_due_date TEXT,
+      description TEXT,
+      is_active INTEGER NOT NULL DEFAULT 1,
+      member TEXT NOT NULL DEFAULT 'Other'
+    )`,
+    `CREATE TABLE IF NOT EXISTS bill_payments (
+      id TEXT PRIMARY KEY,
+      bill_id TEXT NOT NULL,
+      date TEXT NOT NULL,
+      amount TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'paid',
+      expense_id TEXT,
+      notes TEXT
     )`
   ];
-  
+
   for (const table of tables) {
     sqlite.exec(table);
   }

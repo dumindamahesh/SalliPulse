@@ -81,6 +81,29 @@ export const forex = sqliteTable("forex", {
   notes: text("notes"),
 });
 
+export const recurringBills = sqliteTable("recurring_bills", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // "payable" or "receivable"
+  category: text("category").notNull(),
+  amount: text("amount").notNull(),
+  frequency: text("frequency").notNull().default("monthly"),
+  nextDueDate: text("next_due_date"),
+  description: text("description"),
+  isActive: integer("is_active", { mode: 'boolean' }).notNull().default(true),
+  member: text("member").notNull().default("Other"),
+});
+
+export const billPayments = sqliteTable("bill_payments", {
+  id: text("id").primaryKey(),
+  billId: text("bill_id").notNull(),
+  date: text("date").notNull(),
+  amount: text("amount").notNull(),
+  status: text("status").notNull().default("paid"),
+  expenseId: text("expense_id"),
+  notes: text("notes"),
+});
+
 export const insertIncomeSchema = createInsertSchema(income).omit({ id: true }).extend({
   date: z.coerce.date(),
 });
@@ -124,3 +147,13 @@ export const tradingAccounts = sqliteTable("trading_accounts", {
 export const insertTradingAccountSchema = createInsertSchema(tradingAccounts).omit({ id: true });
 export type TradingAccount = typeof tradingAccounts.$inferSelect;
 export type InsertTradingAccount = z.infer<typeof insertTradingAccountSchema>;
+
+export const insertRecurringBillSchema = createInsertSchema(recurringBills).omit({ id: true });
+export const insertBillPaymentSchema = createInsertSchema(billPayments).omit({ id: true }).extend({
+  date: z.coerce.date(),
+});
+
+export type RecurringBill = typeof recurringBills.$inferSelect;
+export type BillPayment = typeof billPayments.$inferSelect;
+export type InsertRecurringBill = z.infer<typeof insertRecurringBillSchema>;
+export type InsertBillPayment = z.infer<typeof insertBillPaymentSchema>;

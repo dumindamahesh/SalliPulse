@@ -108,52 +108,69 @@ export default function Calendar() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-slide-up">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Calendar</h1>
-        <Button onClick={() => setShowAddForm(true)} data-testid="button-add-data">
-          <Plus className="mr-2 h-4 w-4" />
+        <div>
+          <h1 className="text-4xl font-black tracking-tight text-gradient">Calendar</h1>
+          <p className="text-muted-foreground">View your financial activity across time</p>
+        </div>
+        <Button
+          onClick={() => setShowAddForm(true)}
+          data-testid="button-add-data"
+          className="bg-gradient-purple-cyan hover:shadow-[0_0_20px_rgba(139,92,246,0.3)] border-none transition-all duration-300 rounded-xl px-6 h-11 font-bold"
+        >
+          <Plus className="mr-2 h-5 w-5" />
           Add Data
         </Button>
       </div>
 
-      {/* Calendar Header */}
-      <div className="rounded-lg border bg-card p-4">
-        <div className="mb-4 flex items-center justify-between">
+      {/* Calendar Container */}
+      <div className="glass-card rounded-[2rem] p-8 border-white/5 shadow-2xl overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/5 blur-[100px] pointer-events-none" />
+
+        {/* Calendar Header */}
+        <div className="mb-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button
-              variant="outline"
-              size="sm"
+              variant="ghost"
+              size="icon"
               onClick={prevMonth}
+              className="h-10 w-10 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white transition-all"
               data-testid="button-prev-month"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-6 w-6" />
             </Button>
-            <div className="w-48 text-center">
-              <h2 className="text-xl font-semibold">
+            <div className="w-56 text-center">
+              <h2 className="text-2xl font-black text-white tracking-tight">
                 {months[currentDate.getMonth()]} {currentDate.getFullYear()}
               </h2>
             </div>
             <Button
-              variant="outline"
-              size="sm"
+              variant="ghost"
+              size="icon"
               onClick={nextMonth}
+              className="h-10 w-10 rounded-xl hover:bg-white/5 text-slate-400 hover:text-white transition-all"
               data-testid="button-next-month"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-6 w-6" />
             </Button>
           </div>
-          <Button variant="outline" size="sm" onClick={goToToday} data-testid="button-today">
+          <Button
+            variant="ghost"
+            onClick={goToToday}
+            className="rounded-xl px-6 hover:bg-white/5 text-slate-400 hover:text-white font-bold transition-all"
+            data-testid="button-today"
+          >
             Today
           </Button>
         </div>
 
         {/* Day headers */}
-        <div className="mb-2 grid grid-cols-7 gap-1">
+        <div className="mb-4 grid grid-cols-7 gap-2">
           {days.map((day) => (
             <div
               key={day}
-              className="flex items-center justify-center py-2 text-sm font-semibold"
+              className="flex items-center justify-center py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500"
             >
               {day}
             </div>
@@ -161,7 +178,7 @@ export default function Calendar() {
         </div>
 
         {/* Calendar days */}
-        <div className="grid grid-cols-7 gap-1">
+        <div className="grid grid-cols-7 gap-2">
           {calendarDays.map((day, index) => {
             const transactions = day ? getTransactionsForDate(day) : null;
             const isCurrentDay = isToday(day);
@@ -169,29 +186,32 @@ export default function Calendar() {
             return (
               <div
                 key={index}
-                className={`relative min-h-24 rounded border p-2 ${
-                  day ? "bg-background" : "bg-muted"
-                } ${isCurrentDay ? "border-2 border-blue-500 bg-blue-50 dark:bg-blue-950" : ""}`}
+                className={`relative min-h-[120px] rounded-2xl border transition-all duration-300 group ${day
+                    ? "bg-slate-900/40 border-white/5 hover:border-purple-500/30 hover:bg-slate-900/60"
+                    : "bg-transparent border-transparent"
+                  } ${isCurrentDay ? "ring-2 ring-purple-500 bg-purple-500/10 border-purple-500/20" : ""}`}
                 data-testid={day ? `calendar-day-${day}` : undefined}
               >
                 {day && (
-                  <>
-                    <div className="mb-1 font-semibold">{day}</div>
+                  <div className="h-full p-4 flex flex-col">
+                    <div className={`text-sm font-black mb-2 ${isCurrentDay ? "text-purple-400" : "text-slate-400 group-hover:text-white"}`}>
+                      {day}
+                    </div>
                     {transactions && (transactions.income > 0 || transactions.expense > 0) && (
-                      <div className="space-y-1 text-xs">
+                      <div className="space-y-1.5 mt-auto">
                         {transactions.income > 0 && (
-                          <div className="text-green-600 dark:text-green-400">
-                            +Rs. {transactions.income.toFixed(0)}
+                          <div className="text-[10px] font-black text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-md border border-emerald-400/20 tabular-nums">
+                            +{transactions.income.toFixed(0)}
                           </div>
                         )}
                         {transactions.expense > 0 && (
-                          <div className="text-red-600 dark:text-red-400">
-                            -Rs. {transactions.expense.toFixed(0)}
+                          <div className="text-[10px] font-black text-rose-400 bg-rose-400/10 px-2 py-0.5 rounded-md border border-rose-400/20 tabular-nums">
+                            -{transactions.expense.toFixed(0)}
                           </div>
                         )}
                       </div>
                     )}
-                  </>
+                  </div>
                 )}
               </div>
             );
@@ -201,7 +221,7 @@ export default function Calendar() {
 
       {/* Add Transaction Dialog - Modal Overlay */}
       {showAddForm && (
-        <div 
+        <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
           onClick={() => setShowAddForm(false)}
           data-testid="modal-overlay"

@@ -3,6 +3,7 @@ import { TransactionsTable } from "@/components/TransactionsTable";
 import { AddTransactionDialog } from "@/components/AddTransactionDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp } from "lucide-react";
+import { FinancialSummaryCard } from "@/components/FinancialSummaryCard";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
@@ -153,140 +154,138 @@ export default function IncomePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-slide-up">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Income</h1>
-          <p className="text-muted-foreground">Track all your income sources</p>
+          <h1 className="text-4xl font-black tracking-tight text-gradient">Income</h1>
+          <p className="text-muted-foreground">Track all your income sources with precision</p>
         </div>
         <AddTransactionDialog />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-              Total Income
-            </CardTitle>
-            <TrendingUp className="h-4 w-4 text-chart-2" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-bold tabular-nums text-chart-2">
-              Rs.{" "}
-              {totalIncome.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid gap-6 md:grid-cols-3">
+        <FinancialSummaryCard
+          title="Total Income"
+          value={formatCurrency(totalIncome)}
+          icon={TrendingUp}
+          iconColor="text-emerald-400"
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Category Breakdown
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                {categoryBreakdown.length > 0 ? (
-                  <PieChart>
-                    <Pie
-                      data={categoryBreakdown}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      outerRadius={80}
-                      innerRadius={60}
-                      stroke="none"
-                      dataKey="value"
-                    >
-                      {categoryBreakdown.map((_, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => formatCurrency(value)} />
-                    <Legend
-                      layout="horizontal"
-                      verticalAlign="bottom"
-                      align="center"
-                      wrapperStyle={{ fontSize: "10px", paddingTop: "20px" }}
-                    />
-                  </PieChart>
-                ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                    No data
-                  </div>
-                )}
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="glass-card rounded-[2rem] p-8 border-white/5 shadow-2xl">
+          <h2 className="mb-6 text-sm font-black text-purple-400 tracking-[0.2em] uppercase">
+            Category Breakdown
+          </h2>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              {categoryBreakdown.length > 0 ? (
+                <PieChart>
+                  <Pie
+                    data={categoryBreakdown}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={100}
+                    innerRadius={75}
+                    stroke="none"
+                    dataKey="value"
+                    paddingAngle={5}
+                  >
+                    {categoryBreakdown.map((_, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value) => formatCurrency(value)}
+                    contentStyle={{
+                      background: 'rgba(15, 23, 42, 0.95)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '16px',
+                      backdropFilter: 'blur(20px)',
+                    }}
+                  />
+                  <Legend
+                    layout="horizontal"
+                    verticalAlign="bottom"
+                    align="center"
+                    wrapperStyle={{ fontSize: "11px", paddingTop: "20px", fontWeight: 'bold' }}
+                  />
+                </PieChart>
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                  No data
+                </div>
+              )}
+            </ResponsiveContainer>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Income by Source
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                {sourceBreakdown.length > 0 ? (
-                  <BarChart data={sourceBreakdown}>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                      strokeOpacity={0.1}
-                    />
-                    <XAxis
-                      dataKey="name"
-                      tick={axisStyle}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      tick={axisStyle}
-                      axisLine={false}
-                      tickLine={false}
-                      tickFormatter={(val) => `${val / 1000}k`}
-                    />
-                    <Tooltip formatter={(value) => formatCurrency(value)} />
-                    <Bar
-                      dataKey="value"
-                      fill="#22c55e"
-                      radius={[4, 4, 0, 0]}
-                      barSize={40}
-                    />
-                  </BarChart>
-                ) : (
-                  <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
-                    No data
-                  </div>
-                )}
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="glass-card rounded-[2rem] p-8 border-white/5 shadow-2xl">
+          <h2 className="mb-6 text-sm font-black text-emerald-400 tracking-[0.2em] uppercase">
+            Income by Source
+          </h2>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              {sourceBreakdown.length > 0 ? (
+                <BarChart data={sourceBreakdown}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="rgba(255,255,255,0.05)"
+                  />
+                  <XAxis
+                    dataKey="name"
+                    tick={{ ...axisStyle, fill: 'rgba(255,255,255,0.5)' }}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    tick={{ ...axisStyle, fill: 'rgba(255,255,255,0.5)' }}
+                    axisLine={false}
+                    tickLine={false}
+                    tickFormatter={(val) => `${val / 1000}k`}
+                  />
+                  <Tooltip
+                    formatter={(value) => formatCurrency(value)}
+                    contentStyle={{
+                      background: 'rgba(15, 23, 42, 0.95)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      borderRadius: '16px',
+                      backdropFilter: 'blur(20px)',
+                    }}
+                  />
+                  <Bar
+                    dataKey="value"
+                    fill="hsl(142, 71%, 45%)"
+                    radius={[6, 6, 0, 0]}
+                    barSize={40}
+                  />
+                </BarChart>
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                  No data
+                </div>
+              )}
+            </ResponsiveContainer>
+          </div>
+        </div>
       </div>
 
-      <div className="space-y-4">
-        <h2 className="text-xl font-semibold">Income History</h2>
+      <div className="space-y-6">
+        <h2 className="text-xl font-black text-white tracking-widest uppercase">Income History</h2>
 
-        <div className="flex flex-wrap gap-4">
-          <div className="flex-1 min-w-48">
-            <label className="text-sm font-medium text-muted-foreground mb-2 block">
+        <div className="glass-card p-6 rounded-2xl border-white/5 shadow-xl flex flex-wrap gap-4">
+          <div className="flex-1 min-w-[200px]">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 block">
               From
             </label>
             <input
               type="date"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-xl border-white/10 bg-slate-900/50 px-3 py-2 text-sm text-white focus:ring-2 focus:ring-purple-500/50 outline-none transition-all"
               value={dateRange.from}
               onChange={(e) =>
                 setDateRange((prev) => ({ ...prev, from: e.target.value }))
@@ -294,13 +293,13 @@ export default function IncomePage() {
             />
           </div>
 
-          <div className="flex-1 min-w-48">
-            <label className="text-sm font-medium text-muted-foreground mb-2 block">
+          <div className="flex-1 min-w-[200px]">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 block">
               To
             </label>
             <input
               type="date"
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-xl border-white/10 bg-slate-900/50 px-3 py-2 text-sm text-white focus:ring-2 focus:ring-purple-500/50 outline-none transition-all"
               value={dateRange.to}
               onChange={(e) =>
                 setDateRange((prev) => ({ ...prev, to: e.target.value }))
@@ -308,18 +307,18 @@ export default function IncomePage() {
             />
           </div>
 
-          <div className="flex-1 min-w-48">
-            <label className="text-sm font-medium text-muted-foreground mb-2 block">
+          <div className="flex-1 min-w-[200px]">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 block">
               Sort By
             </label>
             <Select
               value={sortBy}
               onValueChange={(value: any) => setSortBy(value)}
             >
-              <SelectTrigger data-testid="select-sort">
+              <SelectTrigger className="rounded-xl border-white/10 bg-slate-900/50">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="glass-card border-white/10">
                 <SelectItem value="date-desc">Latest First</SelectItem>
                 <SelectItem value="date-asc">Oldest First</SelectItem>
                 <SelectItem value="amount-desc">Highest Amount</SelectItem>
@@ -328,15 +327,15 @@ export default function IncomePage() {
             </Select>
           </div>
 
-          <div className="flex-1 min-w-48">
-            <label className="text-sm font-medium text-muted-foreground mb-2 block">
+          <div className="flex-1 min-w-[200px]">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 block">
               Filter by Category
             </label>
             <Select value={filterCategory} onValueChange={setFilterCategory}>
-              <SelectTrigger data-testid="select-category-filter">
+              <SelectTrigger className="rounded-xl border-white/10 bg-slate-900/50">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="glass-card border-white/10">
                 <SelectItem value="all">All Categories</SelectItem>
                 {categories.map((cat) => (
                   <SelectItem key={cat} value={cat}>
@@ -347,15 +346,15 @@ export default function IncomePage() {
             </Select>
           </div>
 
-          <div className="flex-1 min-w-48">
-            <label className="text-sm font-medium text-muted-foreground mb-2 block">
+          <div className="flex-1 min-w-[200px]">
+            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2 block">
               Filter by Member
             </label>
             <Select value={filterMember} onValueChange={setFilterMember}>
-              <SelectTrigger data-testid="select-member-filter">
+              <SelectTrigger className="rounded-xl border-white/10 bg-slate-900/50">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="glass-card border-white/10">
                 <SelectItem value="all">All Members</SelectItem>
                 {members.map((member) => (
                   <SelectItem key={member} value={member}>

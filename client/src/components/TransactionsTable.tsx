@@ -109,18 +109,18 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
 
   return (
     <>
-      <div className="rounded-md border">
+      <div className="glass-card rounded-2xl overflow-hidden border-white/5 shadow-2xl animate-scale-in">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead className="hidden md:table-cell">Member</TableHead>
-              <TableHead className="hidden md:table-cell">
+          <TableHeader className="bg-white/5">
+            <TableRow className="hover:bg-transparent border-white/5">
+              <TableHead className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Date</TableHead>
+              <TableHead className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Category</TableHead>
+              <TableHead className="hidden md:table-cell text-slate-400 font-bold uppercase tracking-widest text-[10px]">Member</TableHead>
+              <TableHead className="hidden md:table-cell text-slate-400 font-bold uppercase tracking-widest text-[10px]">
                 Description
               </TableHead>
-              <TableHead className="text-right">Amount</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right text-slate-400 font-bold uppercase tracking-widest text-[10px]">Amount</TableHead>
+              <TableHead className="text-right text-slate-400 font-bold uppercase tracking-widest text-[10px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -138,27 +138,27 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
                 <TableRow
                   key={transaction.id}
                   data-testid={`row-transaction-${transaction.id}`}
+                  className="hover:bg-white/5 transition-colors border-white/5 group"
                 >
-                  <TableCell className="font-medium">
+                  <TableCell className="font-bold text-slate-300">
                     {formatDate(transaction.date)}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="secondary" className="text-xs">
+                    <Badge variant="secondary" className="bg-purple-500/10 text-purple-400 border-purple-500/20 text-[10px] font-black uppercase tracking-widest">
                       {transaction.category}
                     </Badge>
                   </TableCell>
-                  <TableCell className="hidden md:table-cell text-sm">
+                  <TableCell className="hidden md:table-cell text-sm text-slate-400 font-medium">
                     {transaction.member || "Other"}
                   </TableCell>
-                  <TableCell className="hidden md:table-cell text-sm">
+                  <TableCell className="hidden md:table-cell text-sm text-slate-400 italic">
                     {transaction.description}
                   </TableCell>
                   <TableCell
-                    className={`text-right font-semibold tabular-nums ${
-                      transaction.type === "income"
-                        ? "text-chart-2"
-                        : "text-foreground"
-                    }`}
+                    className={`text-right font-black tabular-nums text-lg ${transaction.type === "income"
+                        ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]"
+                        : "text-white"
+                      }`}
                   >
                     {transaction.type === "income" ? "+" : "-"}
                     {formatCurrency(Math.abs(transaction.amount))}
@@ -169,6 +169,7 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
                         size="sm"
                         variant="ghost"
                         onClick={() => setEditingId(transaction.id)}
+                        className="hover:bg-blue-500/20 hover:text-blue-400 text-slate-500 transition-all rounded-lg"
                         data-testid={`button-edit-${transaction.id}`}
                       >
                         <Edit2 className="h-4 w-4" />
@@ -177,6 +178,7 @@ export function TransactionsTable({ transactions }: TransactionsTableProps) {
                         size="sm"
                         variant="ghost"
                         onClick={() => setDeleteConfirm(transaction.id)}
+                        className="hover:bg-red-500/20 hover:text-red-400 text-slate-500 transition-all rounded-lg"
                         data-testid={`button-delete-${transaction.id}`}
                       >
                         <Trash2 className="h-4 w-4" />

@@ -337,9 +337,7 @@ export default function Dashboard() {
   );
 
   return (
-    <div className="min-h-screen space-y-6 p-6 bg-slate-50/50">
-      {" "}
-      {/* Background image eka ain kara, light background ekak damma */}
+    <div className="min-h-screen space-y-6 p-6 animate-slide-up">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-4xl font-black tracking-tight text-gradient">
@@ -389,58 +387,54 @@ export default function Dashboard() {
           <AddTransactionDialog />
         </div>
       </div>
-      {/* Stats Grid */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         {[
           {
             title: "Total Income",
             val: totalIncome,
             icon: TrendingUp,
-            color: "bg-emerald-500",
-            text: "text-emerald-600",
+            gradient: "bg-gradient-green-emerald",
+            accent: "emerald",
           },
           {
             title: "Total Expenses",
             val: totalExpenses,
             icon: TrendingDown,
-            color: "bg-rose-500",
-            text: "text-rose-600",
+            gradient: "bg-gradient-orange-red",
+            accent: "red",
           },
           {
             title: "Savings",
             val: savings,
             icon: PiggyBank,
-            color: "bg-amber-500",
-            text: "text-amber-600",
+            gradient: "bg-gradient-blue-teal",
+            accent: "blue",
           },
           {
             title: "Net Worth",
             val: netWorth,
             icon: Wallet,
-            color: "bg-blue-600",
-            text: "text-blue-600",
+            gradient: "bg-gradient-purple-cyan",
+            accent: "purple",
           },
         ].map((stat, i) => (
           <div
             key={i}
-            className="group relative overflow-hidden rounded-3xl bg-white p-6 shadow-sm border transition-all hover:shadow-xl hover:-translate-y-1"
+            className={`group relative overflow-hidden rounded-3xl p-[1px] ${stat.gradient} transition-all duration-500 hover:scale-[1.03] hover:shadow-2xl hover:shadow-${stat.accent}-500/20`}
           >
-            <div
-              className={`absolute top-0 right-0 h-24 w-24 translate-x-8 -translate-y-8 rounded-full ${stat.color} opacity-[0.03] transition-transform group-hover:scale-150`}
-            />
-            <div className="flex items-center gap-4">
-              <div
-                className={`rounded-2xl ${stat.color} p-3 text-white shadow-lg`}
-              >
-                <stat.icon className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-sm font-bold uppercase tracking-wider text-slate-400">
-                  {stat.title}
-                </p>
-                <h3 className={`text-2xl font-black ${stat.text}`}>
-                  Rs. {stat.val.toLocaleString("en-US", { maximumFractionDigits: 0 })}
-                </h3>
+            <div className="glass-card h-full rounded-[1.4rem] p-6 dark:bg-slate-900/80">
+              <div className="flex items-center gap-4">
+                <div className={`rounded-2xl bg-${stat.accent}-500/20 p-3 text-${stat.accent}-400 ring-1 ring-${stat.accent}-500/30 transition-all duration-500 group-hover:scale-110 group-hover:bg-${stat.accent}-500/30`}>
+                  <stat.icon className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-slate-400/80 mb-1">
+                    {stat.title}
+                  </p>
+                  <h3 className="text-2xl font-black text-white tabular-nums tracking-tight">
+                    Rs. {stat.val.toLocaleString("en-US", { maximumFractionDigits: 0 })}
+                  </h3>
+                </div>
               </div>
             </div>
           </div>
@@ -450,24 +444,25 @@ export default function Dashboard() {
       <div className="grid gap-6 lg:grid-cols-4">
         {/* Categories Sidebar */}
         <div className="space-y-6">
-          <div className="rounded-[2rem] bg-[#1B263B] p-8 text-white shadow-xl">
-            <h2 className="text-lg font-bold mb-6 opacity-90 tracking-wide uppercase">
+          <div className="glass-card rounded-[2rem] p-8 border-white/5 shadow-2xl relative overflow-hidden group">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-cyan-500 opacity-50" />
+            <h2 className="text-sm font-black mb-6 text-emerald-400 tracking-[0.2em] uppercase">
               Top Burners
             </h2>
             <div className="space-y-5">
               {getTopCategories().map((cat, idx) => (
-                <div key={cat.name} className="group cursor-default">
+                <div key={cat.name} className="group cursor-default animate-slide-up" style={{ animationDelay: `${idx * 100}ms` }}>
                   <div className="flex justify-between mb-2">
-                    <span className="text-sm font-semibold text-slate-300">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-tighter">
                       {cat.name}
                     </span>
-                    <span className="text-sm font-bold text-emerald-400">
+                    <span className="text-sm font-black text-white tabular-nums">
                       Rs. {cat.value.toLocaleString("en-US", { maximumFractionDigits: 0 })}
                     </span>
                   </div>
-                  <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-2 w-full bg-slate-800/50 rounded-full overflow-hidden p-[1px] ring-1 ring-white/5">
                     <div
-                      className="h-full bg-emerald-500 transition-all duration-1000"
+                      className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-1000 shadow-[0_0_8px_rgba(16,185,129,0.5)]"
                       style={{ width: `${(cat.value / totalExpenses) * 100}%` }}
                     />
                   </div>
@@ -477,8 +472,8 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-4 shadow-sm lg:col-span-3">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="glass-card rounded-[2rem] p-8 border-white/5 shadow-2xl lg:col-span-3">
+          <h2 className="mb-6 text-sm font-black text-blue-400 tracking-[0.2em] uppercase">
             Income vs Expenses
           </h2>
           <ResponsiveContainer width="100%" height={350}>
@@ -486,32 +481,42 @@ export default function Dashboard() {
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                strokeOpacity={0.1}
+                stroke="rgba(255,255,255,0.05)"
               />
               <XAxis
                 dataKey="month"
-                tick={axisStyle}
+                tick={{ ...axisStyle, fill: 'rgba(255,255,255,0.5)' }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={axisStyle}
+                tick={{ ...axisStyle, fill: 'rgba(255,255,255,0.5)' }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(val) => `${val / 1000}k`}
               />
-              <Tooltip formatter={(value) => formatCurrency(value)} />
-              <Legend verticalAlign="top" height={36} iconType="circle" />
+              <Tooltip
+                formatter={(value) => formatCurrency(value)}
+                contentStyle={{
+                  background: 'rgba(15, 23, 42, 0.95)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '16px',
+                  backdropFilter: 'blur(20px)',
+                  boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.3)'
+                }}
+              />
+              <Legend verticalAlign="top" height={36} iconType="circle" wrapperStyle={{ paddingBottom: '20px', fontSize: '12px', fontWeight: 'bold' }} />
               <Bar
                 dataKey="income"
-                fill="#22c55e"
-                radius={[4, 4, 0, 0]}
+                fill="hsl(142, 71%, 45%)"
+                radius={[6, 6, 0, 0]}
                 barSize={30}
+                className="animate-glow-pulse"
               />
               <Bar
                 dataKey="expenses"
-                fill="#ef4444"
-                radius={[4, 4, 0, 0]}
+                fill="hsl(12, 76%, 61%)"
+                radius={[6, 6, 0, 0]}
                 barSize={30}
               />
             </BarChart>
@@ -520,8 +525,8 @@ export default function Dashboard() {
       </div>
       {/* Line 2: Total Income% & Total Expense% */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-4 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="glass-card rounded-[2rem] p-8 border-white/5 shadow-2xl">
+          <h2 className="mb-6 text-sm font-black text-purple-400 tracking-[0.2em] uppercase">
             Total Income %
           </h2>
           <ResponsiveContainer width="100%" height={320}>
@@ -532,24 +537,34 @@ export default function Dashboard() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  outerRadius={80}
-                  innerRadius={60}
+                  outerRadius={100}
+                  innerRadius={75}
                   stroke="none"
                   dataKey="value"
+                  paddingAngle={5}
                 >
                   {getIncomeByPercentage().map((_, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={COLORS[index % COLORS.length]}
+                      className="animate-glow-pulse"
                     />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => `${value}%`} />
+                <Tooltip
+                  formatter={(value) => `${value}%`}
+                  contentStyle={{
+                    background: 'rgba(15, 23, 42, 0.95)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '16px',
+                    backdropFilter: 'blur(20px)',
+                  }}
+                />
                 <Legend
                   layout="horizontal"
                   verticalAlign="bottom"
                   align="center"
-                  wrapperStyle={{ fontSize: "10px", paddingTop: "20px" }}
+                  wrapperStyle={{ fontSize: "11px", paddingTop: "20px", fontWeight: 'bold' }}
                 />
               </PieChart>
             ) : (
@@ -560,8 +575,8 @@ export default function Dashboard() {
           </ResponsiveContainer>
         </div>
 
-        <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-4 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="glass-card rounded-[2rem] p-8 border-white/5 shadow-2xl">
+          <h2 className="mb-6 text-sm font-black text-pink-400 tracking-[0.2em] uppercase">
             Total Expense %
           </h2>
           <ResponsiveContainer width="100%" height={320}>
@@ -572,10 +587,11 @@ export default function Dashboard() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  outerRadius={80}
-                  innerRadius={60}
+                  outerRadius={100}
+                  innerRadius={75}
                   stroke="none"
                   dataKey="value"
+                  paddingAngle={5}
                 >
                   {getCategoryBreakdownByPercentage().map((_, index) => (
                     <Cell
@@ -584,12 +600,20 @@ export default function Dashboard() {
                     />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => `${value}%`} />
+                <Tooltip
+                  formatter={(value) => `${value}%`}
+                  contentStyle={{
+                    background: 'rgba(15, 23, 42, 0.95)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '16px',
+                    backdropFilter: 'blur(20px)',
+                  }}
+                />
                 <Legend
                   layout="horizontal"
                   verticalAlign="bottom"
                   align="center"
-                  wrapperStyle={{ fontSize: "10px", paddingTop: "20px" }}
+                  wrapperStyle={{ fontSize: "11px", paddingTop: "20px", fontWeight: 'bold' }}
                 />
               </PieChart>
             ) : (
@@ -602,8 +626,8 @@ export default function Dashboard() {
       </div>
       {/* Line 3: Income Generation & Expense Generation (Family Member Wise) */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-4 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="glass-card rounded-[2rem] p-8 border-white/5 shadow-2xl">
+          <h2 className="mb-6 text-sm font-black text-emerald-400 tracking-[0.2em] uppercase">
             Income Generation
           </h2>
           <ResponsiveContainer width="100%" height={300}>
@@ -611,28 +635,36 @@ export default function Dashboard() {
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                strokeOpacity={0.1}
+                stroke="rgba(255,255,255,0.05)"
               />
               <XAxis
                 dataKey="name"
-                tick={axisStyle}
+                tick={{ ...axisStyle, fill: 'rgba(255,255,255,0.5)' }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={axisStyle}
+                tick={{ ...axisStyle, fill: 'rgba(255,255,255,0.5)' }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(val) => `${val / 1000}k`}
               />
-              <Tooltip formatter={(value) => formatCurrency(value)} />
-              <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={40} />
+              <Tooltip
+                formatter={(value) => formatCurrency(value)}
+                contentStyle={{
+                  background: 'rgba(15, 23, 42, 0.95)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '16px',
+                  backdropFilter: 'blur(20px)',
+                }}
+              />
+              <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={40} className="fill-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-4 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="glass-card rounded-[2rem] p-8 border-white/5 shadow-2xl">
+          <h2 className="mb-6 text-sm font-black text-purple-400 tracking-[0.2em] uppercase">
             Expense Generation (Family Member Wise)
           </h2>
           <ResponsiveContainer width="100%" height={300}>
@@ -640,30 +672,38 @@ export default function Dashboard() {
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                strokeOpacity={0.1}
+                stroke="rgba(255,255,255,0.05)"
               />
               <XAxis
                 dataKey="name"
-                tick={axisStyle}
+                tick={{ ...axisStyle, fill: 'rgba(255,255,255,0.5)' }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={axisStyle}
+                tick={{ ...axisStyle, fill: 'rgba(255,255,255,0.5)' }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(val) => `${val / 1000}k`}
               />
-              <Tooltip formatter={(value) => formatCurrency(value)} />
-              <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={40} />
+              <Tooltip
+                formatter={(value) => formatCurrency(value)}
+                contentStyle={{
+                  background: 'rgba(15, 23, 42, 0.95)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '16px',
+                  backdropFilter: 'blur(20px)',
+                }}
+              />
+              <Bar dataKey="value" radius={[6, 6, 0, 0]} barSize={40} className="fill-purple-500 shadow-[0_0_15px_rgba(139,92,246,0.5)]" />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
       {/* Line 4: Income Variance & Expense Variance */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-4 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="glass-card rounded-[2rem] p-8 border-white/5 shadow-2xl">
+          <h2 className="mb-6 text-sm font-black text-blue-400 tracking-[0.2em] uppercase">
             Income Variance
           </h2>
           <ResponsiveContainer width="100%" height={350}>
@@ -671,26 +711,34 @@ export default function Dashboard() {
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                strokeOpacity={0.1}
+                stroke="rgba(255,255,255,0.05)"
               />
               <XAxis
                 dataKey="month"
-                tick={axisStyle}
+                tick={{ ...axisStyle, fill: 'rgba(255,255,255,0.5)' }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={axisStyle}
+                tick={{ ...axisStyle, fill: 'rgba(255,255,255,0.5)' }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(val) => `${val / 1000}k`}
               />
-              <Tooltip formatter={(value) => formatCurrency(value)} />
+              <Tooltip
+                formatter={(value) => formatCurrency(value)}
+                contentStyle={{
+                  background: 'rgba(15, 23, 42, 0.95)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '16px',
+                  backdropFilter: 'blur(20px)',
+                }}
+              />
               <Legend
                 layout="horizontal"
                 verticalAlign="bottom"
                 align="center"
-                wrapperStyle={{ fontSize: "10px" }}
+                wrapperStyle={{ fontSize: "11px", paddingTop: '10px', fontWeight: 'bold' }}
               />
               {Array.from(new Set(filteredIncome.map((i) => i.source)))
                 .slice(0, 8)
@@ -700,42 +748,49 @@ export default function Dashboard() {
                     dataKey={src}
                     stackId="a"
                     fill={COLORS[idx % COLORS.length]}
-                    radius={idx === 0 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                    radius={idx === 0 ? [6, 6, 0, 0] : [0, 0, 0, 0]}
                   />
                 ))}
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-4 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="glass-card rounded-[2rem] p-8 border-white/5 shadow-2xl">
+          <h2 className="mb-6 text-sm font-black text-amber-400 tracking-[0.2em] uppercase">
             Expense Variance
           </h2>
           <ResponsiveContainer width="100%" height={350}>
             <BarChart layout="vertical" data={getExpenseVariance()}>
               <CartesianGrid
                 strokeDasharray="3 3"
-                vertical={false}
-                strokeOpacity={0.1}
+                horizontal={false}
+                stroke="rgba(255,255,255,0.05)"
               />
               <XAxis type="number" hide />
               <YAxis
                 dataKey="name"
                 type="category"
                 width={100}
-                tick={axisStyle}
+                tick={{ ...axisStyle, fill: 'rgba(255,255,255,0.5)' }}
                 axisLine={false}
                 tickLine={false}
               />
               <Tooltip
-                cursor={{ fill: "transparent" }}
+                cursor={{ fill: "rgba(255,255,255,0.03)" }}
                 formatter={(value) => formatCurrency(value)}
+                contentStyle={{
+                  background: 'rgba(15, 23, 42, 0.95)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '16px',
+                  backdropFilter: 'blur(20px)',
+                }}
               />
               <Bar
                 dataKey="value"
-                fill="#f59e0b"
-                radius={[0, 4, 4, 0]}
+                fill="hsl(43, 96%, 64%)"
+                radius={[0, 6, 6, 0]}
                 barSize={20}
+                className="shadow-[0_0_10px_rgba(245,158,11,0.3)]"
               />
             </BarChart>
           </ResponsiveContainer>
@@ -743,8 +798,8 @@ export default function Dashboard() {
       </div>
       {/* Line 5: Income Monthly & Expense Monthly */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-4 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="glass-card rounded-[2rem] p-8 border-white/5 shadow-2xl">
+          <h2 className="mb-6 text-sm font-black text-teal-400 tracking-[0.2em] uppercase">
             Income Monthly
           </h2>
           <ResponsiveContainer width="100%" height={300}>
@@ -752,26 +807,34 @@ export default function Dashboard() {
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                strokeOpacity={0.1}
+                stroke="rgba(255,255,255,0.05)"
               />
               <XAxis
                 dataKey="month"
-                tick={axisStyle}
+                tick={{ ...axisStyle, fill: 'rgba(255,255,255,0.5)' }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={axisStyle}
+                tick={{ ...axisStyle, fill: 'rgba(255,255,255,0.5)' }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(val) => `${val / 1000}k`}
               />
-              <Tooltip formatter={(value) => formatCurrency(value)} />
+              <Tooltip
+                formatter={(value) => formatCurrency(value)}
+                contentStyle={{
+                  background: 'rgba(15, 23, 42, 0.95)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '16px',
+                  backdropFilter: 'blur(20px)',
+                }}
+              />
               <Legend
                 layout="horizontal"
                 verticalAlign="bottom"
                 align="center"
-                wrapperStyle={{ fontSize: "10px" }}
+                wrapperStyle={{ fontSize: "11px", paddingTop: '10px', fontWeight: 'bold' }}
               />
               {Array.from(new Set(filteredIncome.map((i) => i.source)))
                 .slice(0, 8)
@@ -781,15 +844,15 @@ export default function Dashboard() {
                     dataKey={src}
                     stackId="a"
                     fill={COLORS[idx % COLORS.length]}
-                    radius={idx === 0 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                    radius={idx === 0 ? [6, 6, 0, 0] : [0, 0, 0, 0]}
                   />
                 ))}
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="rounded-lg border bg-card/80 backdrop-blur-sm p-4 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+        <div className="glass-card rounded-[2rem] p-8 border-white/5 shadow-2xl">
+          <h2 className="mb-6 text-sm font-black text-rose-400 tracking-[0.2em] uppercase">
             Expense Monthly
           </h2>
           <ResponsiveContainer width="100%" height={300}>
@@ -797,26 +860,34 @@ export default function Dashboard() {
               <CartesianGrid
                 strokeDasharray="3 3"
                 vertical={false}
-                strokeOpacity={0.1}
+                stroke="rgba(255,255,255,0.05)"
               />
               <XAxis
                 dataKey="month"
-                tick={axisStyle}
+                tick={{ ...axisStyle, fill: 'rgba(255,255,255,0.5)' }}
                 axisLine={false}
                 tickLine={false}
               />
               <YAxis
-                tick={axisStyle}
+                tick={{ ...axisStyle, fill: 'rgba(255,255,255,0.5)' }}
                 axisLine={false}
                 tickLine={false}
                 tickFormatter={(val) => `${val / 1000}k`}
               />
-              <Tooltip formatter={(value) => formatCurrency(value)} />
+              <Tooltip
+                formatter={(value) => formatCurrency(value)}
+                contentStyle={{
+                  background: 'rgba(15, 23, 42, 0.95)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '16px',
+                  backdropFilter: 'blur(20px)',
+                }}
+              />
               <Legend
                 layout="horizontal"
                 verticalAlign="bottom"
                 align="center"
-                wrapperStyle={{ fontSize: "10px" }}
+                wrapperStyle={{ fontSize: "11px", paddingTop: '10px', fontWeight: 'bold' }}
               />
               {Array.from(new Set(filteredExpenses.map((e) => e.category)))
                 .slice(0, 8)
@@ -826,7 +897,7 @@ export default function Dashboard() {
                     dataKey={cat}
                     stackId="a"
                     fill={COLORS[idx % COLORS.length]}
-                    radius={idx === 0 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+                    radius={idx === 0 ? [6, 6, 0, 0] : [0, 0, 0, 0]}
                   />
                 ))}
             </BarChart>

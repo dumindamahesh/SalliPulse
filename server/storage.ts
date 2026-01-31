@@ -7,6 +7,8 @@ import {
   rentalFleet,
   forex,
   tradingAccounts,
+  recurringBills,
+  billPayments,
   type Income,
   type Expense,
   type Asset,
@@ -15,6 +17,8 @@ import {
   type RentalFleet,
   type Forex,
   type TradingAccount,
+  type RecurringBill,
+  type BillPayment,
   type InsertIncome,
   type InsertExpense,
   type InsertAsset,
@@ -23,6 +27,8 @@ import {
   type InsertRentalFleet,
   type InsertForex,
   type InsertTradingAccount,
+  type InsertRecurringBill,
+  type InsertBillPayment,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -82,6 +88,20 @@ export interface IStorage {
   createTradingAccount(data: InsertTradingAccount): Promise<TradingAccount>;
   updateTradingAccount(id: string, data: Partial<InsertTradingAccount>): Promise<TradingAccount>;
   deleteTradingAccount(id: string): Promise<void>;
+
+  // Recurring Bill operations
+  getAllRecurringBills(): Promise<RecurringBill[]>;
+  getRecurringBillById(id: string): Promise<RecurringBill | undefined>;
+  createRecurringBill(data: InsertRecurringBill): Promise<RecurringBill>;
+  updateRecurringBill(id: string, data: Partial<InsertRecurringBill>): Promise<RecurringBill>;
+  deleteRecurringBill(id: string): Promise<void>;
+
+  // Bill Payment operations
+  getAllBillPayments(billId?: string): Promise<BillPayment[]>;
+  getBillPaymentById(id: string): Promise<BillPayment | undefined>;
+  createBillPayment(data: InsertBillPayment): Promise<BillPayment>;
+  updateBillPayment(id: string, data: Partial<InsertBillPayment>): Promise<BillPayment>;
+  deleteBillPayment(id: string): Promise<void>;
 }
 
 // In-memory storage implementation
@@ -476,6 +496,101 @@ export class DatabaseStorage implements IStorage {
 
   async deleteTradingAccount(id: string): Promise<void> {
     await db.delete(tradingAccounts).where(eq(tradingAccounts.id, id));
+  }
+
+  // Recurring Bill operations
+  async getAllRecurringBills(): Promise<RecurringBill[]> {
+    return await db.select().from(recurringBills);
+  }
+
+  async getRecurringBillById(id: string): Promise<RecurringBill | undefined> {
+    const [result] = await db.select().from(recurringBills).where(eq(recurringBills.id, id));
+    return result;
+  }
+
+  async createRecurringBill(data: InsertRecurringBill): Promise<RecurringBill> {
+    const id = generateId();
+    const billData = { ...data, id };
+    await db.insert(recurringBills).values(billData);
+    const [result] = await db.select().from(recurringBills).where(eq(recurringBills.id, id));
+    return result!;
+  }
+
+  async updateRecurringBill(id: string, data: Partial<InsertRecurringBill>): Promise<RecurringBill> {
+    await db.update(recurringBills).set(data).where(eq(recurringBills.id, id));
+    const [result] = await db.select().from(recurringBills).where(eq(recurringBills.id, id));
+    return result!;
+  }
+
+  async deleteRecurringBill(id: string): Promise<void> {
+    await db.delete(recurringBills).where(eq(recurringBills.id, id));
+  }
+
+  // Bill Payment operations
+  async getAllBillPayments(billId?: string): Promise<BillPayment[]> {
+    if (billId) {
+      return await db.select().from(billPayments).where(eq(billPayments.billId, billId));
+    }
+    return await db.select().from(billPayments);
+  }
+
+  async getBillPaymentById(id: string): Promise<BillPayment | undefined> {
+    const [result] = await db.select().from(billPayments).where(eq(billPayments.id, id));
+    return result;
+  }
+
+  async createBillPayment(data: InsertBillPayment): Promise<BillPayment> {
+    const id = generateId();
+    let expenseId: string | null = null;
+
+    // Get the bill to check if it's a payable
+    const bill = await this.getRecurringBillById(data.billId);
+
+    if (bill && bill.type === 'payable') {
+      // Automatically create an expense
+      const expense = await this.createExpense({
+        date: data.date,
+        category: bill.category,
+        amount: data.amount,
+        description: `${bill.name} - ${data.notes || 'Bill payment'}`,
+        member: bill.member,
+        isBusiness: false,
+      });
+      expenseId = expense.id;
+    }
+
+    const paymentData = {
+      ...data,
+      id,
+      date: formatDate(data.date),
+      expenseId,
+    };
+
+    await db.insert(billPayments).values(paymentData);
+    const [result] = await db.select().from(billPayments).where(eq(billPayments.id, id));
+    return result!;
+  }
+
+  async updateBillPayment(id: string, data: Partial<InsertBillPayment>): Promise<BillPayment> {
+    const updateData: any = { ...data };
+    if (updateData.date) {
+      updateData.date = formatDate(updateData.date);
+    }
+    await db.update(billPayments).set(updateData).where(eq(billPayments.id, id));
+    const [result] = await db.select().from(billPayments).where(eq(billPayments.id, id));
+    return result!;
+  }
+
+  async deleteBillPayment(id: string): Promise<void> {
+    // Get the payment first to check if it has a linked expense
+    const payment = await this.getBillPaymentById(id);
+
+    if (payment && payment.expenseId) {
+      // Delete the linked expense
+      await this.deleteExpense(payment.expenseId);
+    }
+
+    await db.delete(billPayments).where(eq(billPayments.id, id));
   }
 }
 

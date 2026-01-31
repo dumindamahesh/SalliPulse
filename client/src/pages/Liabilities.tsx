@@ -12,7 +12,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertLiabilitySchema, type Liability } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, CreditCard, Trash2, Edit2 } from "lucide-react";
+import { Plus, CreditCard, Trash2, Edit2, TrendingDown } from "lucide-react";
+import { FinancialSummaryCard } from "@/components/FinancialSummaryCard";
 
 export default function LiabilitiesPage() {
   const { toast } = useToast();
@@ -55,73 +56,98 @@ export default function LiabilitiesPage() {
   const totalLiabilities = liabilityData.reduce((sum, liability) => sum + parseFloat(liability.amount), 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-slide-up">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Liabilities</h1>
-          <p className="text-muted-foreground">Manage your debts and obligations</p>
+          <h1 className="text-4xl font-black tracking-tight text-gradient">Liabilities</h1>
+          <p className="text-muted-foreground">Manage your debts and obligations with clarity</p>
         </div>
         <Dialog open={editingId === 'create'} onOpenChange={(val) => setEditingId(val ? 'create' : null)}>
           <DialogTrigger asChild>
-            <Button data-testid="button-add-liability">
-              <Plus className="mr-2 h-4 w-4" />
+            <Button data-testid="button-add-liability" className="bg-gradient-pink-purple hover:shadow-[0_0_20px_rgba(236,72,153,0.3)] border-none transition-all duration-300 rounded-xl px-6 h-11 font-bold">
+              <Plus className="mr-2 h-5 w-5" />
               Add Liability
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="glass-card border-white/10 text-white rounded-3xl sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Add Liability</DialogTitle>
+              <DialogTitle className="text-2xl font-black tracking-tight">Add Liability</DialogTitle>
             </DialogHeader>
             <LiabilityForm onSubmit={(data) => createMutation.mutate(data)} isLoading={createMutation.isPending} />
           </DialogContent>
         </Dialog>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Total Liabilities</CardTitle>
-            <div className="text-2xl font-bold tabular-nums text-destructive" data-testid="text-total-liabilities">
-              {formatCurrency(totalLiabilities)}
-            </div>
+      <div className="grid gap-6 md:grid-cols-3">
+        <FinancialSummaryCard
+          title="Total Liabilities"
+          value={formatCurrency(totalLiabilities)}
+          icon={CreditCard}
+          iconColor="text-rose-400"
+        />
+      </div>
+
+      <div className="glass-card rounded-[2rem] p-8 border-white/5 shadow-2xl overflow-hidden relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-rose-500/5 blur-[100px] pointer-events-none" />
+        <h2 className="mb-6 text-sm font-black text-rose-400 tracking-[0.2em] uppercase flex items-center gap-2">
+          Liability List
+          <div className="h-px flex-1 bg-white/5" />
+        </h2>
+
+        {isLoading ? (
+          <div className="text-slate-400 font-medium">Loading liabilities...</div>
+        ) : liabilityData.length === 0 ? (
+          <div className="py-12 text-center text-slate-500 font-medium bg-white/5 rounded-2xl border border-dashed border-white/10">
+            No liabilities added yet
           </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div>Loading...</div>
-          ) : liabilityData.length === 0 ? (
-            <div className="py-8 text-center text-muted-foreground">No liabilities added yet</div>
-          ) : (
-            <div className="space-y-4">
-              {liabilityData.map((liability) => (
-                <div key={liability.id} className="flex items-center justify-between rounded-md border p-4">
-                  <div className="flex items-center gap-4">
-                    <div className="rounded-md bg-muted p-2">
-                      <CreditCard className="h-5 w-5 text-destructive" />
-                    </div>
-                    <div>
-                      <div className="font-semibold">{liability.name}</div>
-                      <Badge variant="secondary" className="mt-1 text-xs">
-                        {liability.category}
-                      </Badge>
+        ) : (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {liabilityData.map((liability) => (
+              <div key={liability.id} className="group relative glass rounded-2xl p-6 border-white/5 hover:border-rose-500/30 transition-all duration-500 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:scale-[1.02] overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-rose-500 to-transparent opacity-50" />
+
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-xl bg-rose-500/10 p-2.5 ring-1 ring-rose-500/20 group-hover:bg-rose-500/20 transition-colors">
+                        <CreditCard className="h-5 w-5 text-rose-400" />
+                      </div>
+                      <div>
+                        <div className="font-black text-white tracking-tight">{liability.name}</div>
+                        <Badge variant="secondary" className="bg-rose-500/10 text-rose-400 border-rose-500/20 text-[10px] font-black uppercase tracking-widest mt-1">
+                          {liability.category}
+                        </Badge>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <div className="text-lg font-bold tabular-nums text-destructive">
-                        {formatCurrency(parseFloat(liability.amount))}
-                      </div>
-                      {liability.description && <div className="text-xs text-muted-foreground">{liability.description}</div>}
+
+                  <div className="mt-2">
+                    <div className="text-2xl font-black text-white tabular-nums tracking-tighter">
+                      {formatCurrency(parseFloat(liability.amount))}
                     </div>
+                    {liability.description && (
+                      <div className="text-xs text-slate-500 mt-1 line-clamp-2 italic">
+                        {liability.description}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 pt-4 border-t border-white/5 mt-auto">
                     <Dialog open={editingId === liability.id} onOpenChange={(val) => setEditingId(val ? liability.id : null)}>
                       <DialogTrigger asChild>
-                        <Button size="sm" variant="outline" data-testid={`button-edit-liability-${liability.id}`}>
-                          <Edit2 className="h-4 w-4" />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="flex-1 hover:bg-rose-500/10 text-slate-400 hover:text-rose-400 rounded-lg transition-all"
+                          data-testid={`button-edit-liability-${liability.id}`}
+                        >
+                          <Edit2 className="h-4 w-4 mr-2" />
+                          Edit
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className="glass-card border-white/10 text-white rounded-3xl sm:max-w-[425px]">
                         <DialogHeader>
-                          <DialogTitle>Edit Liability</DialogTitle>
+                          <DialogTitle className="text-2xl font-black tracking-tight text-white">Edit Liability</DialogTitle>
                         </DialogHeader>
                         <LiabilityForm
                           defaultValues={liability}
@@ -132,19 +158,21 @@ export default function LiabilitiesPage() {
                     </Dialog>
                     <Button
                       size="sm"
-                      variant="destructive"
+                      variant="ghost"
                       onClick={() => deleteMutation.mutate(liability.id)}
+                      className="flex-1 hover:bg-red-500/10 text-slate-400 hover:text-red-400 rounded-lg transition-all"
                       data-testid={`button-delete-liability-${liability.id}`}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete
                     </Button>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

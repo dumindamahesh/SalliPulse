@@ -15,6 +15,7 @@ import Liabilities from "@/pages/Liabilities";
 import Investments from "@/pages/Investments";
 import Business from "@/pages/Business";
 import Forex from "@/pages/Forex";
+import RecurringBills from "@/pages/RecurringBills";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/calendar" component={Calendar} />
       <Route path="/income" component={Income} />
       <Route path="/expenses" component={Expenses} />
+      <Route path="/recurring-bills" component={RecurringBills} />
       <Route path="/assets" component={Assets} />
       <Route path="/liabilities" component={Liabilities} />
       <Route path="/investments" component={Investments} />

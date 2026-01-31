@@ -10,6 +10,8 @@ import {
   insertRentalFleetSchema,
   insertForexSchema,
   insertTradingAccountSchema,
+  insertRecurringBillSchema,
+  insertBillPaymentSchema,
 } from "@shared/schema";
 import multer from "multer";
 import * as XLSX from "xlsx";
@@ -48,7 +50,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
 
             const amount = parseFloat(String(hasAmount).replace(/[$,₹\s]/g, ""));
-            
+
             if (isNaN(amount)) {
               results.errors.push(`Skipped row: invalid amount "${hasAmount}"`);
               continue;
@@ -70,10 +72,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
 
             // Determine if it's income or expense
-            const isIncome = amount > 0 || 
-                           sheetName.toLowerCase().includes("income") ||
-                           (hasCategory && String(hasCategory).toLowerCase().includes("income")) ||
-                           (row.Type && String(row.Type).toLowerCase().includes("income"));
+            const isIncome = amount > 0 ||
+              sheetName.toLowerCase().includes("income") ||
+              (hasCategory && String(hasCategory).toLowerCase().includes("income")) ||
+              (row.Type && String(row.Type).toLowerCase().includes("income"));
 
             if (isIncome) {
               const incomeData = {
@@ -505,6 +507,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ error: "Failed to delete trading account" });
+    }
+  });
+
+  // Recurring Bills routes
+  app.get("/api/recurring-bills", async (req, res) => {
+    try {
+      const bills = await storage.getAllRecurringBills();
+      res.json(bills);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch recurring bills" });
+    }
+  });
+
+  app.get("/api/recurring-bills/:id", async (req, res) => {
+    try {
+      const bill = await storage.getRecurringBillById(req.params.id);
+      if (!bill) {
+        return res.status(404).json({ error: "Recurring bill not found" });
+      }
+      res.json(bill);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch recurring bill" });
+    }
+  });
+
+  app.post("/api/recurring-bills", async (req, res) => {
+    try {
+      const validatedData = insertRecurringBillSchema.parse(req.body);
+      const bill = await storage.createRecurringBill(validatedData);
+      res.status(201).json(bill);
+    } catch (error) {
+      res.status(400).json({ error: "Invalid recurring bill data" });
+    }
+  });
+
+  app.patch("/api/recurring-bills/:id", async (req, res) => {
+    try {
+      const bill = await storage.updateRecurringBill(req.params.id, req.body);
+      res.json(bill);
+    } catch (error) {
+      res.status(400).json({ error: "Failed to update recurring bill" });
+    }
+  });
+
+  app.delete("/api/recurring-bills/:id", async (req, res) => {
+    try {
+      await storage.deleteRecurringBill(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete recurring bill" });
+    }
+  });
+
+  // Bill Payments routes
+  app.get("/api/bill-payments", async (req, res) => {
+    try {
+      const billId = req.query.billId as string | undefined;
+      const payments = await storage.getAllBillPayments(billId);
+      res.json(payments);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch bill payments" });
+    }
+  });
+
+  app.get("/api/bill-payments/:id", async (req, res) => {
+    try {
+      const payment = await storage.getBillPaymentById(req.params.id);
+      if (!payment) {
+        return res.status(404).json({ error: "Bill payment not found" });
+      }
+      res.json(payment);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch bill payment" });
+    }
+  });
+
+  app.post("/api/bill-payments", async (req, res) => {
+    try {
+      const validatedData = insertBillPaymentSchema.parse(req.body);
+      const payment = await storage.createBillPayment(validatedData);
+      res.status(201).json(payment);
+    } catch (error: any) {
+      console.error("Bill payment creation error:", error);
+      res.status(400).json({ error: "Invalid bill payment data", details: error.message });
+    }
+  });
+
+  app.patch("/api/bill-payments/:id", async (req, res) => {
+    try {
+      const payment = await storage.updateBillPayment(req.params.id, req.body);
+      res.json(payment);
+    } catch (error) {
+      res.status(400).json({ error: "Failed to update bill payment" });
+    }
+  });
+
+  app.delete("/api/bill-payments/:id", async (req, res) => {
+    try {
+      await storage.deleteBillPayment(req.params.id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete bill payment" });
     }
   });
 

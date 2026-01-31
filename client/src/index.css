@@ -9,44 +9,35 @@
     --background: 210 40% 98%;
     --font-sans: "Chillax", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-    /* Very light cool blue/gray */
+    /* Light mode colors */
     --foreground: 222 47% 11%;
-    /* Deep rich blue */
-
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
-
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-
     --primary: 221 83% 53%;
-    /* Vivid Blue */
     --primary-foreground: 210 40% 98%;
-
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222 47% 11.2%;
-
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
     --accent: 210 40% 96.1%;
     --accent-foreground: 222 47% 11.2%;
-
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 221 83% 53%;
-
     --radius: 0.75rem;
 
+    /* Chart colors - vibrant */
     --chart-1: 221 83% 53%;
     --chart-2: 142 71% 45%;
     --chart-3: 12 76% 61%;
     --chart-4: 43 96% 64%;
     --chart-5: 262 83% 58%;
 
+    /* Sidebar */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -58,51 +49,64 @@
   }
 
   .dark {
-    --background: 222 47% 11%;
-    /* Deep rich blue background */
+    /* Enhanced dark theme - deep blue-black background */
+    --background: 222 47% 7%;
+    /* #0B1120 - Deep blue-black */
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 11%;
-    /* Match background for seamless look or slight variation */
+    /* Cards with slight transparency for glassmorphism */
+    --card: 220 40% 12%;
+    /* Slightly lighter than background */
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 11%;
+    --popover: 220 40% 12%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217 91% 60%;
-    /* Bright Blue for dark mode */
-    --primary-foreground: 222 47.1% 11.2%;
+    /* Vibrant primary - bright blue */
+    --primary: 217 91% 65%;
+    /* Brighter blue for dark mode */
+    --primary-foreground: 222 47% 11%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 220 30% 18%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 220 30% 18%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 220 30% 18%;
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 72% 51%;
+    /* Brighter red */
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border: 220 30% 20%;
+    --input: 220 30% 18%;
+    --ring: 217 91% 65%;
 
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    /* Vibrant neon chart colors */
+    --chart-1: 262 83% 65%;
+    /* Purple */
+    --chart-2: 189 94% 60%;
+    /* Cyan */
+    --chart-3: 217 91% 65%;
+    /* Blue */
+    --chart-4: 340 82% 65%;
+    /* Pink */
+    --chart-5: 166 76% 55%;
+    /* Teal */
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Enhanced sidebar - darker */
+    --sidebar-background: 222 47% 8%;
+    /* Slightly lighter than main bg */
+    --sidebar-foreground: 210 40% 95%;
+    --sidebar-primary: 217 91% 65%;
+    /* Bright blue active state */
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 220 35% 15%;
+    --sidebar-accent-foreground: 210 40% 95%;
+    --sidebar-border: 220 30% 15%;
+    --sidebar-ring: 217 91% 65%;
   }
 }
 
@@ -113,23 +117,217 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans);
   }
 }
 
-/* Custom premium aesthetic utilities */
+/* ===================================
+   PREMIUM GLASSMORPHISM UTILITIES
+   =================================== */
+
 .glass {
-  @apply bg-background/60 backdrop-blur-xl border-t border-white/20 shadow-xl;
+  @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-2xl;
 }
 
 .dark .glass {
-  @apply bg-background/60 backdrop-blur-xl border-t border-white/10 shadow-xl;
+  @apply bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-2xl;
 }
 
-/* Gradient text utility */
+.glass-card {
+  @apply bg-white/80 backdrop-blur-md border border-gray-200/50 shadow-xl rounded-2xl;
+}
+
+.dark .glass-card {
+  @apply bg-slate-800/30 backdrop-blur-md border border-white/5 shadow-2xl rounded-2xl;
+}
+
+/* ===================================
+   GRADIENT UTILITIES
+   =================================== */
+
+/* Gradient backgrounds */
+.bg-gradient-purple-cyan {
+  background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
+}
+
+.bg-gradient-blue-teal {
+  background: linear-gradient(135deg, #3B82F6 0%, #14B8A6 100%);
+}
+
+.bg-gradient-pink-purple {
+  background: linear-gradient(135deg, #EC4899 0%, #8B5CF6 100%);
+}
+
+.bg-gradient-orange-red {
+  background: linear-gradient(135deg, #F59E0B 0%, #EF4444 100%);
+}
+
+.bg-gradient-green-emerald {
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+}
+
+/* Gradient text */
 .text-gradient {
   @apply bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent;
 }
 
 .dark .text-gradient {
   @apply bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent;
+}
+
+.text-gradient-purple-cyan {
+  background: linear-gradient(135deg, #8B5CF6 0%, #06B6D4 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ===================================
+   GLOW & SHADOW EFFECTS
+   =================================== */
+
+.glow-blue {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 0 0 40px rgba(59, 130, 246, 0.1);
+}
+
+.glow-purple {
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3), 0 0 40px rgba(139, 92, 246, 0.1);
+}
+
+.glow-cyan {
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.3), 0 0 40px rgba(6, 182, 212, 0.1);
+}
+
+.glow-pink {
+  box-shadow: 0 0 20px rgba(236, 72, 153, 0.3), 0 0 40px rgba(236, 72, 153, 0.1);
+}
+
+/* ===================================
+   ANIMATIONS
+   =================================== */
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.5s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s ease-out;
+}
+
+/* ===================================
+   HOVER EFFECTS
+   =================================== */
+
+.card-hover {
+  @apply transition-all duration-300 ease-out;
+}
+
+.card-hover:hover {
+  @apply scale-[1.02] shadow-2xl;
+}
+
+.dark .card-hover:hover {
+  @apply shadow-blue-500/20;
+}
+
+/* ===================================
+   CUSTOM SCROLLBAR (Dark Mode)
+   =================================== */
+
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.3);
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.5);
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.7);
+}
+
+/* ===================================
+   BADGE STYLES
+   =================================== */
+
+.badge-payable {
+  @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold;
+  @apply bg-red-100 text-red-700;
+}
+
+.dark .badge-payable {
+  @apply bg-red-500/20 text-red-400 ring-1 ring-red-500/30;
+}
+
+.badge-receivable {
+  @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold;
+  @apply bg-green-100 text-green-700;
+}
+
+.dark .badge-receivable {
+  @apply bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/30;
 }

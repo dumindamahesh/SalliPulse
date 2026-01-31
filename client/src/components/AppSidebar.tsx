@@ -22,6 +22,7 @@ import {
   Briefcase,
   Globe,
   Settings,
+  Receipt,
 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useTheme } from "next-themes";
@@ -33,6 +34,7 @@ const personalMenuItems = [
   { title: "Calendar", url: "/calendar", icon: Calendar },
   { title: "Income", url: "/income", icon: TrendingUp },
   { title: "Expenses", url: "/expenses", icon: TrendingDown },
+  { title: "Recurring Bills", url: "/recurring-bills", icon: Receipt },
   { title: "Assets", url: "/assets", icon: Building2 },
   { title: "Liabilities", url: "/liabilities", icon: CreditCard },
   { title: "Investments", url: "/investments", icon: LineChart },
@@ -53,8 +55,8 @@ export function AppSidebar() {
       variant="floating"
       collapsible="icon"
       className={cn(
-        "border-r transition-all duration-300 shadow-2xl",
-        "bg-sidebar border-sidebar-border"
+        "border-r transition-all duration-500 shadow-2xl overflow-hidden",
+        "bg-slate-900/40 backdrop-blur-xl border-white/5"
       )}
     >
       <SidebarHeader className="py-8">
@@ -62,9 +64,9 @@ export function AppSidebar() {
           {/* Logo Container */}
           <div
             className={cn(
-              "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-lg transition-transform",
+              "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-2xl transition-all duration-500 hover:rotate-6",
               isDark
-                ? "bg-white ring-2 ring-emerald-500/20"
+                ? "bg-white ring-2 ring-purple-500/20 shadow-purple-500/10"
                 : "bg-white border border-slate-100",
             )}
           >
@@ -79,7 +81,7 @@ export function AppSidebar() {
             {/* Title - Dan dark mode eke sudu pata wenawa */}
             <span
               className={cn(
-                "text-lg font-bold tracking-tighter transition-colors text-sidebar-foreground"
+                "text-lg font-black tracking-tight transition-colors bg-gradient-to-br from-white to-white/60 bg-clip-text text-transparent"
               )}
             >
               SilliPulse
@@ -113,10 +115,10 @@ export function AppSidebar() {
                   asChild
                   isActive={location === item.url}
                   className={cn(
-                    "h-11 px-3 rounded-xl transition-all duration-200 group/item",
-                    "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/70",
-                    "data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-lg",
-                    "font-semibold",
+                    "h-11 px-3 rounded-xl transition-all duration-300 group/item relative overflow-hidden",
+                    "hover:bg-sidebar-accent hover:text-white text-sidebar-foreground/60",
+                    "data-[active=true]:bg-gradient-purple-cyan data-[active=true]:text-white data-[active=true]:shadow-[0_8px_20px_-5px_rgba(139,92,246,0.3)] data-[active=true]:ring-1 data-[active=true]:ring-white/20",
+                    "font-bold uppercase tracking-wider text-[11px]",
                   )}
                 >
                   <Link href={item.url} className="flex items-center gap-3">
@@ -124,8 +126,8 @@ export function AppSidebar() {
                       className={cn(
                         "h-5 w-5 shrink-0 transition-colors",
                         location === item.url
-                          ? "text-sidebar-primary-foreground"
-                          : "text-sidebar-foreground/50 group-hover/item:text-sidebar-accent-foreground"
+                          ? "text-white"
+                          : "text-slate-500 group-hover/item:text-white"
                       )}
                     />
                     <span className="text-sm truncate group-data-[collapsible=icon]:hidden">
@@ -155,10 +157,10 @@ export function AppSidebar() {
                   asChild
                   isActive={location === item.url}
                   className={cn(
-                    "h-11 px-3 rounded-xl transition-all duration-200 group/item",
-                    "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground text-sidebar-foreground/70",
-                    "data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground data-[active=true]:shadow-lg",
-                    "font-semibold",
+                    "h-11 px-3 rounded-xl transition-all duration-300 group/item relative overflow-hidden",
+                    "hover:bg-sidebar-accent hover:text-white text-sidebar-foreground/60",
+                    "data-[active=true]:bg-gradient-blue-teal data-[active=true]:text-white data-[active=true]:shadow-[0_8px_20px_-5px_rgba(14,165,233,0.3)] data-[active=true]:ring-1 data-[active=true]:ring-white/20",
+                    "font-bold uppercase tracking-wider text-[11px]",
                   )}
                 >
                   <Link href={item.url} className="flex items-center gap-3">
@@ -166,8 +168,8 @@ export function AppSidebar() {
                       className={cn(
                         "h-5 w-5 shrink-0 transition-colors",
                         location === item.url
-                          ? "text-sidebar-primary-foreground"
-                          : "text-sidebar-foreground/50 group-hover/item:text-sidebar-accent-foreground"
+                          ? "text-white"
+                          : "text-slate-500 group-hover/item:text-white"
                       )}
                     />
                     <span className="text-sm truncate group-data-[collapsible=icon]:hidden italic">
